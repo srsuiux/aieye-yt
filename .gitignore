@@ -1,0 +1,46 @@
+# ── Secrets & credentials — NEVER commit ─────────────────────
+.env
+*.env
+client_secrets.json
+youtube_token.pickle
+*.pem
+*.key
+*.crt
+
+# ── Personal settings and data ───────────────────────────────
+# your saved defaults
+aieye_settings.json
+# topic queue + history of made videos
+db/
+# your channel's identity (logo/banner prompts, metadata, images): this repo is only the framework
+yt/
+
+# ── Generated media (large, reproducible) ────────────────────
+# finished videos
+shorts_output/
+# narrator samples (OpenAI's voices are public)
+voice_samples/
+# experiment clips
+dynamic_demos/
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# ── Logs, temp, local databases ──────────────────────────────
+logs/
+*.log
+*.db
+*.sqlite3
+*.bak
+*.backup
+*.swp
+
+# ── OS / editor ──────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/

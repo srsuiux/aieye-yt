@@ -1,0 +1,13 @@
+openai>=2.20,<3
+python-dotenv
+requests
+numpy
+pillow
+moviepy            # also pulls in imageio-ffmpeg (the bundled ffmpeg 7.x the pipeline prefers)
+imageio-ffmpeg
+google-api-python-client
+google-auth-oauthlib
+
+# Accurate caption timing (forced alignment). Optional: without them the pipeline falls back to an estimate.
+torch
+torchaudio
