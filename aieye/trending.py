@@ -3,7 +3,7 @@ import json, re, time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 
-from .config import GPT_IN_COST, GPT_MODEL, GPT_OUT_COST
+from .config import AUDIENCE_NOTES, GPT_IN_COST, GPT_MODEL, GPT_OUT_COST
 from .costs import track
 from .ui import fail, log, ok, section, spin, warn
 
@@ -69,6 +69,8 @@ Below is what is trending on the web right now. Pick the ONE item that makes the
 
 Good: science, space, nature, animals, history, technology, psychology, geography, health, culture, famous
 places/people from history, big events with a fascinating story behind them.
+{AUDIENCE_NOTES}
+Prefer items that fit those strengths.
 Skip: tragedies and deaths, crimes, politics and elections, sexual or graphic content, gambling, gossip about
 living private people, anything where facts could be unsettled or unverifiable.
 

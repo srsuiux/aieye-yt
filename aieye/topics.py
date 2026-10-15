@@ -1,6 +1,6 @@
 import time, json
 from datetime import datetime
-from .config import CFG, DRAFT_DB, GPT_IN_COST, GPT_MODEL, GPT_OUT_COST, N_TOPICS
+from .config import AUDIENCE_NOTES, CFG, DRAFT_DB, GPT_IN_COST, GPT_MODEL, GPT_OUT_COST, N_TOPICS
 from .costs import track
 from .store import all_used_titles, get_pending, save_db
 from .ui import log, ok, section, spin, warn
@@ -15,6 +15,8 @@ def generate_topics(client):
 Generate exactly {N_TOPICS} unique viral-worthy YouTube Shorts topics for a general
 audience — kids and adults. Categories: science, space, animals, nature, history,
 technology, psychology, geography, math, physics.
+
+{AUDIENCE_NOTES}
 
 Already used — do NOT repeat:
 {used_list}
@@ -54,6 +56,8 @@ def refine_topic(client, raw):
     """Treat the user's topic as a reference: keep its subject and intent, rewrite it into an engaging Short topic."""
     prompt = f"""You are a YouTube Shorts hook writer for a facts channel (general audience, kids and adults).
 The creator gave this rough topic as a REFERENCE: "{raw}"
+
+{AUDIENCE_NOTES}
 
 Keep its subject and what the creator wants to explore. Rewrite it into a topic that makes people stop scrolling:
 a specific, curious, interactive framing (a question, a surprising contrast, or a "you've been wrong about this"

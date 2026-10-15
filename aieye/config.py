@@ -70,3 +70,14 @@ CFG = {
 }
 
 
+
+# What works for THIS channel (YouTube Studio, last 28 days as of Oct 2026). Fed into every topic prompt;
+# edit the text, not the code, when the analytics change.
+AUDIENCE_NOTES = """What has worked best on this channel (use it to choose and word topics):
+- Bizarre animal adaptations and biology: vivid, shocking, concrete (a fish that climbs waterfalls with its mouth,
+  a sea cucumber that ejects its organs). Highest like-to-view ratio.
+- Mind-bending space and astronomy at cosmic scale (galaxies colliding, Earth smaller than a pixel). Most views and
+  longest watch time.
+- Counter-intuitive everyday physics framed as a question in the first seconds (how does a skater spin faster
+  without a push?).
+- Provocative, curiosity-driven science; one clear surprising idea; 45-50 second Shorts. Over 99% of traffic is Shorts."""
