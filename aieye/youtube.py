@@ -80,7 +80,8 @@ def upload_to_youtube(video_path, meta):
             "description":     meta["description"],
             "tags":            CHANNEL["tags"],
             "categoryId":      "28",
-            "defaultLanguage": "en",
+            "defaultLanguage": meta.get("lang", "en"),
+            "defaultAudioLanguage": meta.get("lang", "en"),
         },
         "status": {
             "privacyStatus":           CFG["upload_privacy"],

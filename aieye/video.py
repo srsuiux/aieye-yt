@@ -163,7 +163,7 @@ def assemble_video(img_paths, audio_paths, durations, out_dir, script):
     # Word timing for every scene first (fast, sequential); it also tells us how many caption cards each
     # scene has, so the highlight colours keep cycling across scene cuts while the scenes render in parallel.
     with spin("Aligning captions to the voice..."):
-        all_words = [align_words(speechify(s["narration"]), audio_paths[i]) for i, s in enumerate(script["scenes"])]
+        all_words = [align_words(speechify(s["narration"]), audio_paths[i], s.get("roman")) for i, s in enumerate(script["scenes"])]
     offsets, run = [], 0
     for w in all_words:
         offsets.append(run)

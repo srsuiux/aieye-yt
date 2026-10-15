@@ -180,10 +180,13 @@ def parse_run_flags(tokens):
         -def        use saved defaults, no questions, narrator shuffled
         -custom ... your own topic (single video; -topic is the same)     -privacy P / -quality Q   per-run overrides"""
     import argparse
-    ns = argparse.Namespace(quick=False, batch=None, setup=False, yes=False, topic=None,
+    ns = argparse.Namespace(languages=["en"], quick=False, batch=None, setup=False, yes=False, topic=None,
                             privacy=None, quality=None, trending=False, use_def=False)
     known = {"trending", "trend", "def", "default", "defaults", "custom", "topic", "privacy", "quality", "y", "yes"}
-    is_flag = lambda t: t.startswith("-") and (t.lstrip("-").lower() in known or t.lstrip("-").isdigit())
+    from .languages import lang_code
+    is_flag = lambda t: t.startswith("-") and (t.lstrip("-").lower() in known or t.lstrip("-").isdigit()
+                                               or lang_code(t) is not None)
+    langs = []
     words, custom, i = [], False, 0
     while i < len(tokens):
         t, k = tokens[i], tokens[i].lstrip("-").lower()
@@ -194,6 +197,8 @@ def parse_run_flags(tokens):
             ns.use_def = True
         elif k.isdigit() and int(k) > 0:
             ns.batch = int(k)
+        elif t.startswith("-") and lang_code(k):
+            langs.append(lang_code(k))
         elif k in ("custom", "topic"):
             custom = True                       # the words after it (quoted or not) are the topic
             while i < len(tokens) and not is_flag(tokens[i]):
@@ -208,6 +213,7 @@ def parse_run_flags(tokens):
                 words.append(tokens[i]); i += 1
         else:
             fail(f"Unknown option '{t}'.  Usage: aieye run [-trending] [-N] [-def] [-custom your topic here]")
+    ns.languages = list(dict.fromkeys(langs)) or ["en"]
     if custom:
         text = " ".join(words).strip()
         if text.lower().startswith("about "):
@@ -255,6 +261,7 @@ def setup_run(args):
             fail("No saved defaults yet. Run once:  python3 ysa-cli.py --setup")
         CFG.update(saved)
         CFG["trending"] = getattr(args, "trending", False)
+        CFG["languages"] = getattr(args, "languages", ["en"])
         if getattr(args, "use_def", False):
             CFG["force_shuffle"] = True        # -def: a random narrator from the pool, even for one video
         if args.privacy:

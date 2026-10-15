@@ -88,6 +88,14 @@ aieye                         # interactive menu
 facts Short (skipping tragedies, politics, gossip), and builds the video from it. It does not read or write the topic
 queue. The facts themselves still come from the model, not from the web page text.
 
+### Languages
+
+`aieye run -custom -1 -def -en -hindi "topic"` makes one video per language. The script and pictures are made once
+in English; each extra language gets the narration re-written as a native speaker would say it (not a word-for-word
+translation), its own voice track and captions, and is uploaded as its own Short with the right language tag.
+Hindi captions are shaped with macOS CoreText (Pillow can't shape Devanagari without raqm). Languages are listed in
+`aieye/languages.py`. Costs ~$0.02 extra per added language (no extra images).
+
 ## Usage
 
 ### One click (macOS)

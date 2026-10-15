@@ -33,7 +33,7 @@ def mark_in_progress(topic):
             t["started_at"] = datetime.now().isoformat()
     save_db(DRAFT_DB, draft)
 
-def mark_done(topic, script, video_id=None):
+def mark_done(topic, script, video_id=None, ids_by_lang=None):
     """Move a topic from the queue to the history as ONE slim record.
 
     The history is only used to avoid repeating titles and to link back to the YouTube video, so it keeps
@@ -50,6 +50,8 @@ def mark_done(topic, script, video_id=None):
     }
     if video_id and video_id != "unknown":
         entry["youtube_id"] = video_id
+    if ids_by_lang:
+        entry["youtube_ids"] = ids_by_lang
     final.append(entry)
     save_db(FINAL_DB, final)
     ok(f"Logged to history — {len(final)} shorts completed total")

@@ -32,6 +32,8 @@ cat <<'EOF'
                         with -N each video gets a different trend
     -custom <topic>     your own topic: used as a reference and rewritten to be more
                         engaging (single video). Quotes optional; flags may come before it
+    -en -hindi ...      languages: one video per language from the SAME topic and pictures
+                        (-en -hi -hindi -es -spanish -fr -de -pt -it -id -tr); default is English only
     -privacy <p>        public | private | unlisted | none   (none = render only, no upload)
     -quality <q>        low | medium | high                  (image quality, this run only)
     -y                  skip the start countdown
@@ -39,6 +41,7 @@ cat <<'EOF'
   EXAMPLES
     aieye run -trending -1 -def
     aieye run -custom -1 -def "the ISS, how it floats in space"
+    aieye run -custom -1 -def -en -hindi "the ISS, how it floats"   English + Hindi
     aieye run -5 -def                          5 videos from the topic queue
     aieye run -trending -3 -def -privacy private
     aieye run -1 -def -quality low -privacy none     cheap test, nothing uploaded

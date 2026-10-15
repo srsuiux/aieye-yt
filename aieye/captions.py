@@ -66,7 +66,7 @@ def _align_heuristic(text, wav_path):
         t0, t1, gaps = 0.0, max(0.5, dur - 0.12), []
 
     W      = [_word_weight(w) for w in words]
-    pause  = [0.32 if w[-1] in ".?!" else 0.16 if w[-1] in ",;:" else 0.0 for w in words]
+    pause  = [0.32 if w[-1] in ".?!।" else 0.16 if w[-1] in ",;:" else 0.0 for w in words]
     pause[-1] = 0.0
     speech_time = max(0.3, (t1 - t0) - sum(pause))
     rate   = sum(W) / speech_time             # weight units per second
@@ -184,10 +184,14 @@ def _align_forced(text, wav_path):
 
 _ALIGN_WARNED = False
 
-def align_words(text, wav_path):
-    """Forced alignment when torch/torchaudio are available, otherwise the pause-anchored estimate."""
+def align_words(text, wav_path, roman=None):
+    """Forced alignment when torch/torchaudio are available, otherwise the pause-anchored estimate.
+    `roman`: for non-Latin scripts, the same words in Latin letters (one per word), used only for timing."""
     global _ALIGN_WARNED
     try:
+        if roman and len(roman.split()) == len(text.split()):
+            timed = _align_forced(roman, wav_path)
+            return [(w, a, b) for w, (_r, a, b) in zip(text.split(), timed)]
         return _align_forced(text, wav_path)
     except Exception as e:
         if not _ALIGN_WARNED:
@@ -202,7 +206,7 @@ def group_cards(words):
     sentences, cur = [], []
     for w in words:
         cur.append(w)
-        if w[0][-1] in ".?!":
+        if w[0][-1] in ".?!।":
             sentences.append(cur); cur = []
     if cur:
         sentences.append(cur)
@@ -244,6 +248,60 @@ def _font(size):
     except Exception:
         return ImageFont.load_default(size)
 
+
+# ── Text that Pillow cannot shape (Hindi etc.): drawn with macOS CoreText instead ──────────────────
+_CT_FONT = "KohinoorDevanagari-Bold"
+_ct_cache = {}
+_ct_lock  = __import__("threading").Lock()     # pyobjc's lazy symbol loading is not thread-safe; clips render in threads
+
+def _shaped(label):
+    return any(ord(ch) > 0x7F for ch in label)
+
+def _ct_mask(label, size):
+    """(mask 'L' image, advance, baseline_y_in_mask, pad) for `label` shaped by CoreText."""
+    key = (label, size)
+    with _ct_lock:
+        if key not in _ct_cache:
+            _ct_cache[key] = _ct_render(label, size)
+        return _ct_cache[key]
+
+def _ct_render(label, size):
+    import CoreText as CT, Quartz as Q
+    from Foundation import NSAttributedString
+    from PIL import Image
+    font = CT.CTFontCreateWithName(_CT_FONT, size * 0.95, None)
+    astr = NSAttributedString.alloc().initWithString_attributes_(
+        label, {CT.kCTFontAttributeName: font, CT.kCTForegroundColorFromContextAttributeName: True})
+    line = CT.CTLineCreateWithAttributedString(astr)
+    adv, asc, desc, _ = CT.CTLineGetTypographicBounds(line, None, None, None)
+    pad = 4
+    w, h = int(adv) + 2 * pad + 2, int(asc + desc) + 2 * pad + 2
+    buf = bytearray(w * h)
+    ctx = Q.CGBitmapContextCreate(buf, w, h, 8, w, Q.CGColorSpaceCreateDeviceGray(), Q.kCGImageAlphaNone)
+    Q.CGContextSetGrayFillColor(ctx, 1.0, 1.0)
+    Q.CGContextSetTextPosition(ctx, pad, pad + desc)
+    CT.CTLineDraw(line, ctx)
+    img = Image.frombuffer("L", (w, h), bytes(buf), "raw", "L", 0, 1)      # the buffer is already top row first
+    return (img, adv, pad + asc, pad)
+
+def _tw(d, label, f, size):
+    """Width of a label in px, shaped or not."""
+    return _ct_mask(label, size)[1] if _shaped(label) else d.textlength(label, font=f)
+
+def _draw(layer, d, x, base, label, f, size, fill, stroke_w=0, stroke_fill=None):
+    """Draw a label with its baseline at `base` on `layer` (d is ImageDraw of layer)."""
+    if not _shaped(label):
+        kw = {"stroke_width": stroke_w, "stroke_fill": stroke_fill} if stroke_w else {}
+        d.text((x, base), label, font=f, fill=fill, anchor="ls", **kw)
+        return
+    from PIL import Image, ImageFilter
+    mask, _adv, base_in, pad = _ct_mask(label, size)
+    ox, oy = int(round(x)) - pad, int(round(base - base_in))
+    if stroke_w:
+        grown = mask.filter(ImageFilter.MaxFilter(2 * max(1, stroke_w // 3) + 1))   # thinner outline: Indic strokes are fine
+        layer.paste(Image.new("RGBA", mask.size, stroke_fill), (ox, oy), grown)
+    layer.paste(Image.new("RGBA", mask.size, fill), (ox, oy), mask)
+
 def _layout(labels):
     """Pick the largest font size where the card fits in ≤2 balanced lines. Returns (size, [[idx..], ..])."""
     from PIL import Image, ImageDraw
@@ -251,7 +309,7 @@ def _layout(labels):
     for size in (84, 78, 72, 66, 60, 54):
         f     = _font(size)
         space = d.textlength(" ", font=f)
-        wid   = [d.textlength(t, font=f) for t in labels]
+        wid   = [_tw(d, t, f, size) for t in labels]
         def width(ix): return sum(wid[k] for k in ix) + space * (len(ix) - 1)
         allw = list(range(len(labels)))
         if width(allw) <= CAPTION_MAX_W and len(labels) <= 3:
@@ -279,7 +337,7 @@ def render_card(card, active, path, color=CAPTION_ACCENT):
     top    = (H - lh * len(lines)) // 2
     plates, texts = [], []
     for li, ix in enumerate(lines):
-        widths = [d0.textlength(labels[k], font=f) for k in ix]
+        widths = [_tw(d0, labels[k], f, size) for k in ix]
         x      = (W - (sum(widths) + space * (len(ix) - 1))) / 2
         base   = top + li * lh + int(size * 0.9)
         for k, wd in zip(ix, widths):
@@ -291,16 +349,16 @@ def render_card(card, active, path, color=CAPTION_ACCENT):
     ds, dp_, dm = ImageDraw.Draw(shadow), ImageDraw.Draw(plate), ImageDraw.Draw(main)
     for k, x, base, wd in texts:
         is_act = (k == active)
-        ds.text((x, base + 7), labels[k], font=f, fill=(0, 0, 0, 200), anchor="ls", stroke_width=9, stroke_fill=(0, 0, 0, 200))
+        _draw(shadow, ds, x, base + 7, labels[k], f, size, (0, 0, 0, 200), 9, (0, 0, 0, 200))
         if is_act and CAPTION_STYLE == "plate":
             pad = int(size * 0.16)
             dp_.rounded_rectangle((x - pad, base - size * 0.86 - pad * 0.3, x + wd + pad, base + size * 0.22 + pad * 0.3),
                                   radius=int(size * 0.24), fill=color)
-            dm.text((x, base), labels[k], font=f, fill="#14141c", anchor="ls")
+            _draw(main, dm, x, base, labels[k], f, size, "#14141c")
         elif is_act:
-            dm.text((x, base), labels[k], font=f, fill=color, anchor="ls", stroke_width=8, stroke_fill="black")
+            _draw(main, dm, x, base, labels[k], f, size, color, 8, "black")
         else:
-            dm.text((x, base), labels[k], font=f, fill="white", anchor="ls", stroke_width=8, stroke_fill="black")
+            _draw(main, dm, x, base, labels[k], f, size, "white", 8, "black")
     shadow = shadow.filter(ImageFilter.GaussianBlur(4))
     out = Image.alpha_composite(Image.alpha_composite(shadow, plate), main)
     if path is not None:

@@ -5,6 +5,7 @@ from .audio import generate_audio, get_durations
 from .client import get_client
 from .config import CFG, CHANNEL, DB_DIR, OUTPUT_DIR
 from .images import generate_images
+from .languages import LANGS, localize_script
 from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
 from .store import get_pending, mark_done, mark_in_progress
@@ -21,6 +22,12 @@ def keep_only_final(out_dir):
     keep    = {"short.mp4", "youtube_metadata.json"}
     deleted = 0
     for item in list(out_dir.iterdir()):
+        if item.is_dir() and item.name in LANGS:          # a language folder: same rule inside it
+            for sub in list(item.iterdir()):
+                if sub.name not in keep:
+                    shutil.rmtree(sub) if sub.is_dir() else sub.unlink()
+                    deleted += 1
+            continue
         if item.name in keep:
             continue
         shutil.rmtree(item) if item.is_dir() else item.unlink()
@@ -64,31 +71,55 @@ def run_one(client):
         log(f"  Building: \"{topic['title']}\"", "cyan")
         log(f"  Output:   {out_dir}", "dim")
 
-        # 2. Pipeline
+        # 2. Script (English) and pictures are made once; every language reuses the same pictures
+        langs = CFG.get("languages") or ["en"]
         script      = generate_script(client, topic, out_dir)
-        audio_paths = generate_audio(client, script, out_dir)
         img_paths   = generate_images(client, script, out_dir)
-        durations   = get_durations(audio_paths, out_dir)
-        video_path  = assemble_video(img_paths, audio_paths, durations, out_dir, script)
         res["title"] = script["title"]
-        res["path"]  = str(video_path)
 
-        # 3. Metadata
-        scene_facts = "\n".join(f"Fact {s['scene']}: {s['narration']}" for s in script["scenes"])
-        meta = {
-            "title":       script["title"] + " #Shorts",
-            "description": CHANNEL["description"].replace("{scene_facts}", scene_facts),
-        }
-        with open(out_dir / "youtube_metadata.json", "w") as f:
-            json.dump(meta, f, indent=2)
+        # 3. One finished video per requested language
+        outcomes = []
+        for code in langs:
+            lang_script, lang_dir = script, out_dir
+            if code != "en":
+                lang_script = localize_script(client, script, code)
+                lang_dir    = out_dir / code
+                lang_dir.mkdir(exist_ok=True)
+            tag = f"[{LANGS[code][0]}] " if len(langs) > 1 else ""
+            log(f"{tag}Building the {LANGS[code][0]} video", "cyan")
+            audio_paths = generate_audio(client, lang_script, lang_dir)
+            durations   = get_durations(audio_paths, lang_dir)
+            video_path  = assemble_video(img_paths, audio_paths, durations, lang_dir, lang_script)
+            res["path"] = res["path"] or str(video_path)
 
-        # 4. Summary
+            scene_facts = "\n".join(f"{s['scene']}. {s['narration']}" for s in lang_script["scenes"])
+            meta = {
+                "title":       lang_script["title"] + " #Shorts",
+                "description": CHANNEL["description"].replace("{scene_facts}", scene_facts),
+                "lang":        code,
+            }
+            with open(lang_dir / "youtube_metadata.json", "w") as f:
+                json.dump(meta, f, indent=2, ensure_ascii=False)
+
+            # 4. Upload (a failed upload keeps the rendered video and does not stop the others)
+            video_id = None
+            try:
+                video_id = upload_to_youtube(video_path, meta)
+            except Exception as e:
+                warn(f"{tag}Upload failed: {str(e)[:200]}")
+                res["error"] = f"upload failed ({code}): {str(e)[:100]}"
+            outcomes.append((code, lang_script, meta, video_path, video_id))
+            if video_id and not res["url"]:
+                res["url"] = f"https://youtube.com/shorts/{video_id}"
+
+        # 5. Summary
         print()
         print(c("═"*60, "bold"))
         print(c("  PIPELINE COMPLETE", "bold"))
         print(c("═"*60, "bold"))
         print(f"  {c('Topic  ','dim')}  {c(topic['title'], 'cyan')}")
-        print(f"  {c('Title  ','dim')}  {c(script['title'], 'cyan')}")
+        for code, ls, _m, vp, vid in outcomes:
+            print(f"  {c(LANGS[code][0][:7].ljust(7),'dim')}  {c(ls['title'], 'cyan')}")
         print(f"  {c('Style  ','dim')}  {c(CFG['image_style'], 'white')}  ·  {c(CFG['image_quality'], 'white')}  ·  {c(CFG['tts_voice'], 'white')}")
         print(f"  {c('Time   ','dim')}  {c(f'{time.time()-t0:.1f}s', 'green')}")
         print(f"  {c('Cost   ','dim')}  {c(f'${costs.total():.4f}', 'yellow')}")
@@ -96,27 +127,18 @@ def run_one(client):
         print(c("═"*60, "bold"))
         print()
 
-        # 5. Upload (a failed upload keeps the rendered video and does not stop a batch)
-        video_id = None
-        try:
-            video_id = upload_to_youtube(video_path, meta)
-        except Exception as e:
-            warn(f"Upload failed: {str(e)[:200]}")
-            res["error"] = f"upload failed: {str(e)[:120]}"
-        if video_id:
-            res["url"] = f"https://youtube.com/shorts/{video_id}"
-
-        # 6. Finalize: log it, and once it is really on YouTube the local files are no longer needed
-        mark_done(topic, script, video_id)
-        if video_id and video_id != "unknown":
+        # 6. Finalize: log it; once every video is really on YouTube the local files are no longer needed
+        ids = {code: vid for code, _s, _m, _v, vid in outcomes if vid and vid != "unknown"}
+        mark_done(topic, script, ids.get("en") or next(iter(ids.values()), None), ids if len(langs) > 1 else None)
+        if len(ids) == len(langs):
             remove_output(out_dir)
         else:
             keep_only_final(out_dir)
 
-        print()
-        if video_id:
-            print(f"  {c('▶  Live at:','green')} {c(res['url'],'cyan')}")
-        print_upload_metadata(meta)
+        for code, _s, meta, _v, vid in outcomes:
+            if vid:
+                print(f"  {c('▶  Live at:','green')} {c(f'https://youtube.com/shorts/{vid}','cyan')}  ({LANGS[code][0]})")
+            print_upload_metadata(meta)
         res["ok"] = res["error"] is None
     except SystemExit:
         res["error"] = res["error"] or "stopped (see the error above)"

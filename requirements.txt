@@ -11,3 +11,7 @@ google-auth-oauthlib
 # Accurate caption timing (forced alignment). Optional: without them the pipeline falls back to an estimate.
 torch
 torchaudio
+
+# Non-Latin captions (Hindi etc.): macOS CoreText does the text shaping Pillow can't
+pyobjc-framework-Quartz; sys_platform == 'darwin'
+pyobjc-framework-CoreText; sys_platform == 'darwin'

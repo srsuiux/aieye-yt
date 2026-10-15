@@ -1,6 +1,7 @@
 import re, subprocess
 from .config import CFG, TTS_COST, TTS_FALLBACK, TTS_MODEL, TTS_STYLE
 from .costs import track
+from .languages import LANGS
 from .ffmpeg import FFMPEG, run_cmd
 from .store import load_ckpt, save_ckpt
 from .ui import log, ok, section, skip, spin, warn
@@ -35,6 +36,7 @@ def tts_request(client, model, text, instructions):
     )
 
 def generate_audio(client, script, out_dir):
+    lang = script.get("lang", "en")
     section(f"STEP 2  —  Audio Generation  ({TTS_MODEL} · {CFG['tts_voice']})")
     paths = []
     model = TTS_MODEL
@@ -47,6 +49,8 @@ def generate_audio(client, script, out_dir):
             continue
         text  = speechify(s["narration"])
         instr = TTS_STYLE + (f" For this line: {s['delivery']}." if s.get("delivery") else "")
+        if lang != "en":
+            instr += f" Speak {LANGS[lang][0]} fluently with a native accent."
         with spin(f"Generating audio — frame {label}..."):
             try:
                 res = tts_request(client, model, text, instr)
