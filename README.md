@@ -24,7 +24,7 @@ A ~45–55 second vertical video (1080×1920, 30 fps, H.264 + AAC) with:
 
 ```
  topic queue ──► 1. Script ──► 2. Voice ──► 3. Images ──► 4. Video ──► 5. Upload
- (db/draft.json)   3 passes     per scene     per scene     ffmpeg       YouTube API
+ (data/db/draft.json)   3 passes     per scene     per scene     ffmpeg       YouTube API
 ```
 
 | Step | What happens | Model / tool |
@@ -65,9 +65,28 @@ The first video downloads the caption-timing model (~1.2 GB, once) into your tor
 Only needed if you want the pipeline to upload. Without it, choose **Don't upload** and the finished video is saved locally.
 
 1. In [Google Cloud Console](https://console.cloud.google.com/), create a project and enable **YouTube Data API v3**.
-2. Create an **OAuth client ID** of type **Desktop app**, download the JSON, and save it in this folder as `client_secrets.json`.
-3. Run a video with uploading on. A browser window opens once to authorise; the login is stored in `youtube_token.pickle`.
+2. Create an **OAuth client ID** of type **Desktop app**, download the JSON, and save it as `data/credentials/client_secrets.json`.
+3. Run a video with uploading on. A browser window opens once to authorise; the login is stored in `data/credentials/youtube_token.pickle`.
    If it ever expires, the pipeline re-opens the browser automatically.
+
+## The `aieye` command
+
+`start-script.sh` is the single launcher; it is symlinked to `~/.local/bin/aieye`
+(`ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`).
+
+```bash
+aieye run -trending -1 -def   # 1 video, topic from what is trending on the web, saved defaults, random narrator
+aieye run -5 -def             # 5 videos from the queue, saved defaults, shuffled narrators
+aieye run -trending -3 -def   # 3 videos, each on a different trend
+aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
+aieye setup                   # choose and save defaults
+aieye trends                  # just list what is trending (free)
+aieye                         # interactive menu
+```
+
+`-trending` reads Google Trends (US) and Wikipedia's most-read pages, asks the model to pick the best fit for a
+facts Short (skipping tragedies, politics, gossip), and builds the video from it. It does not read or write the topic
+queue. The facts themselves still come from the model, not from the web page text.
 
 ## Usage
 
@@ -77,9 +96,9 @@ Double-click in Finder:
 
 | File | Does |
 |---|---|
-| `make-1-video.command` | Makes 1 video with your saved defaults and uploads it |
-| `make-5-videos.command` | Makes 5 videos back to back (different narrator each) and uploads them |
-| `change-defaults.command` | Pick and save your default settings |
+| `launchers/make-1-video.command` | Makes 1 video with your saved defaults and uploads it |
+| `launchers/make-5-videos.command` | Makes 5 videos back to back (different narrator each) and uploads them |
+| `launchers/change-defaults.command` | Pick and save your default settings |
 
 Each shows the settings and estimated cost, then starts after a 5-second countdown. **Ctrl+C in that window cancels.**
 If macOS blocks the first launch: right-click the file → Open.
@@ -116,7 +135,7 @@ Running with no flags shows:
 
 ## Settings
 
-Saved in `aieye_settings.json` (edit through `--setup` or menu option 4).
+Saved in `data/settings.json` (edit through `--setup` or menu option 4).
 
 | Setting | Options |
 |---|---|
@@ -129,22 +148,21 @@ Saved in `aieye_settings.json` (edit through `--setup` or menu option 4).
 > ⚠️ If privacy is **public**, every finished video is published immediately — including all five in a batch.
 > Use `private` until you trust the output, or `none` to review files first.
 
-Audio samples of every voice (same line, same style) are in `voice_samples/` if you generated them — listen and edit `VOICE_POOL` to taste.
+Audio samples of every voice (same line, same style) are in `assets/voice_samples/` if you generated them — listen and edit `VOICE_POOL` to taste.
 
 ## Output & data
 
 ```
-shorts_output/<timestamp>/
-    short.mp4                 the finished video
-    youtube_metadata.json     title + description that were uploaded
-db/
-    draft.json                topic queue (pending / in_progress)
-    final.json                every completed video: title, cost, voice, scenes, YouTube link
-aieye_settings.json           your saved defaults
+data/output/<timestamp>/      one folder per video while it is being built / waiting to upload
+data/db/draft.json            topic queue (pending / in_progress)
+data/db/final.json            one slim line per finished video: title, topic, cost, date, YouTube id
+data/settings.json            your saved defaults
 ```
 
-Temporary files (audio, images, clips) are deleted after each successful run; only `short.mp4` and the metadata are kept.
-An interrupted run leaves its partial files in its `shorts_output/<timestamp>/` folder; re-running starts a fresh folder (and a topic left `in_progress` in `db/draft.json` is skipped, not retried).
+Once a video is **posted to YouTube**, its whole `data/output/<timestamp>/` folder is deleted. If the upload is skipped
+or fails, `short.mp4` + `youtube_metadata.json` are kept so you can upload by hand; delete the folder when done.
+The history (`final.json`) deliberately stores no scene text or file paths, so it stays small (~200 bytes per video).
+An interrupted run leaves its partial files in its `data/output/<timestamp>/` folder; re-running starts a fresh folder (and a topic left `in_progress` in `data/db/draft.json` is skipped, not retried).
 
 ## Cost
 
@@ -164,7 +182,7 @@ Narration cost is an estimate (the API doesn't report it).
 
 ## Customising
 
-Everything below is a constant near the top of `ysa-cli.py` (or beside its section).
+Everything below is a constant in `aieye/config.py` (or at the top of the module for that step).
 
 | What | Constant |
 |---|---|
@@ -190,11 +208,11 @@ Everything below is a constant near the top of `ysa-cli.py` (or beside its secti
 |---|---|
 | `insufficient_quota` / "no credits remaining" | Add credits at platform.openai.com → Billing. Newly added credits can take a few minutes; also check the key belongs to the same organisation/project. A batch stops itself when this happens. |
 | "Rate limit on scene … waiting Ns" | Normal: the image API limits how fast pictures can be requested. The pipeline waits and retries by itself. If it keeps happening, lower `IMAGE_WORKERS` to 1–2 or `MAX_SHOTS` to 2. |
-| `OPENAI_API_KEY not set` | Put it in `.env` next to `ysa-cli.py`. |
+| `OPENAI_API_KEY not set` | Put it in `.env` in the project root (next to `ysa-cli.py`). |
 | `No saved defaults yet` | Run `python3 ysa-cli.py --setup` once. |
 | `ffprobe: command not found` | Install ffmpeg (`brew install ffmpeg`) so `ffprobe` is on your PATH. |
 | "Forced alignment unavailable … using estimated caption timing" | `torch`/`torchaudio` missing or the model couldn't download. Run `pip install torch torchaudio` and check your connection. Captions still work, just less precisely timed. |
-| Upload fails | The video is still saved in `shorts_output/`. Check `client_secrets.json`; delete `youtube_token.pickle` to re-authorise. |
+| Upload fails | The video is still saved in `data/output/`. Check `data/credentials/client_secrets.json`; delete `data/credentials/youtube_token.pickle` to re-authorise. |
 | A video in a batch failed | The others carry on; the summary at the end lists each result and where the file is. |
 | TTS model error | The pinned snapshot may have been retired; the pipeline falls back to `gpt-4o-mini-tts` automatically (less controllable — see notes). |
 
@@ -211,23 +229,34 @@ Everything below is a constant near the top of `ysa-cli.py` (or beside its secti
 
 ## Security
 
-Never share or commit: `.env` (OpenAI key), `client_secrets.json` and `youtube_token.pickle` (YouTube access).
+Never share or commit: `.env` (OpenAI key), `data/credentials/` (YouTube access).
 All three, plus outputs and settings, are listed in `.gitignore`. If a key is ever exposed (in a log, screenshot or chat), rotate it in the provider's dashboard.
 
 ## Project layout
 
 ```
-ysa-cli.py                  the whole pipeline (CLI, settings, script, voice, images, video, upload)
+ysa-cli.py                  entry point (python3 ysa-cli.py, or python3 -m aieye)
+aieye/                      the pipeline, one module per step
+    config.py                 models, prices, channel info, file locations
+    ui.py                     colours, logging, spinner, prompts
+    settings.py               saved defaults, CLI args, run setup
+    store.py                  topic queue + history (data/db), checkpoints
+    costs.py                  running API cost
+    client.py                 OpenAI client
+    topics.py                 step 0  topic selection
+    script.py                 step 1  3-pass script
+    audio.py                  step 2  narration + durations
+    images.py                 step 3  images
+    captions.py               word alignment + caption cards
+    video.py                  step 4  render + assemble
+    ffmpeg.py                 ffmpeg lookup / runner
+    youtube.py                step 5  upload
+    pipeline.py               run_one / main, cleanup after posting
+launchers/                  double-click launchers (macOS)
 requirements.txt            dependencies
-make-1-video.command        double-click launchers (macOS)
-make-5-videos.command
-change-defaults.command
-aieye_settings.json         your saved defaults            (created by --setup)
-.env                        OPENAI_API_KEY                 (you create this)
-client_secrets.json         Google OAuth client            (you create this)
-youtube_token.pickle        YouTube login                  (created on first upload)
-db/                         topic queue + history
-shorts_output/              finished videos
-voice_samples/              optional narrator samples
-yt/                         channel branding assets (logo/banner prompts, metadata)
+.env                        OPENAI_API_KEY                 (you create this; see .env.example)
+assets/voice_samples/       optional narrator samples      (git-ignored)
+assets/channel/             channel branding assets        (git-ignored)
+data/                       everything generated/personal  (git-ignored)
+    settings.json, db/, output/, credentials/, experiments/
 ```

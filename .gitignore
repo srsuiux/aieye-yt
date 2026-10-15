@@ -7,21 +7,13 @@ youtube_token.pickle
 *.key
 *.crt
 
-# ── Personal settings and data ───────────────────────────────
-# your saved defaults
-aieye_settings.json
-# topic queue + history of made videos
-db/
+# ── Personal / generated data (all under data/) ──────────────
+# settings, topic queue + history, finished videos, YouTube credentials, experiments
+data/
 # your channel's identity (logo/banner prompts, metadata, images): this repo is only the framework
-yt/
-
-# ── Generated media (large, reproducible) ────────────────────
-# finished videos
-shorts_output/
+assets/channel/
 # narrator samples (OpenAI's voices are public)
-voice_samples/
-# experiment clips
-dynamic_demos/
+assets/voice_samples/
 
 # ── Python ────────────────────────────────────────────────────
 __pycache__/
