@@ -15,6 +15,19 @@ assets/channel/
 # narrator samples (OpenAI's voices are public)
 assets/voice_samples/
 
+# ── Heavy media: never commit images, video or audio anywhere in the repo ──
+# (generated pictures and videos belong under data/, which is ignored; use `git add -f` for a deliberate exception)
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.mov
+*.m4a
+*.mp3
+*.wav
+
 # ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.pyc
