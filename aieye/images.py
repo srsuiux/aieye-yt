@@ -5,8 +5,9 @@ from .ui import fail, ok, section, spin, warn
 
 # STEP 3 — IMAGES
 
-LAYOUT_SUFFIX = ("Vertical 2:3 composition: main subject in the upper-middle of the frame; keep the bottom "
-                 "third plain and uncluttered (no text, no key objects); keep all labels inside the central 80% width.")
+LAYOUT_SUFFIX = ("Vertical 2:3 composition, tightly zoomed in: the main subject is large, sharp and clear, filling most of "
+                 "the frame width and the upper two-thirds; keep the bottom third free of key details (soft or blurred, no text); "
+                 "keep all labels inside the central 80% width.")
 
 def call_with_retry(fn, what="request", tries=8):
     """Run an API call; on a rate limit (429) wait as long as the API asks (or back off) and try again.

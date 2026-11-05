@@ -1,7 +1,7 @@
 # AI Eye — Shorts Pipeline
 
 Turns a topic into a finished YouTube Short — script, narration, images, animated video with
-highlighted captions — and uploads it. One command (or one double-click) makes 1 video or a batch of 5.
+highlighted captions — and uploads it. One command (or one double-click) makes 1 video or a batch of 3 (never more than 3 a day).
 
 > **Channel:** [@AIEyeFacts](https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw) · *"5 facts. 60 seconds. Mind blown."*
 
@@ -76,7 +76,8 @@ Only needed if you want the pipeline to upload. Without it, choose **Don't uploa
 
 ```bash
 aieye run -trending -1 -def   # 1 video, topic from what is trending on the web, saved defaults, random narrator
-aieye run -5 -def             # 5 videos from the queue, saved defaults, shuffled narrators
+aieye run -top -3 -def        # 3 videos from the top categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
+aieye run -3 -def             # 3 videos from the queue, saved defaults, shuffled narrators
 aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
 aieye setup                   # choose and save defaults
@@ -105,7 +106,7 @@ Double-click in Finder:
 | File | Does |
 |---|---|
 | `launchers/make-1-video.command` | Makes 1 video with your saved defaults and uploads it |
-| `launchers/make-5-videos.command` | Makes 5 videos back to back (different narrator each) and uploads them |
+| `launchers/make-3-videos.command` | Makes 3 videos back to back (different narrator each) and uploads them |
 | `launchers/change-defaults.command` | Pick and save your default settings |
 
 Each shows the settings and estimated cost, then starts after a 5-second countdown. **Ctrl+C in that window cancels.**
@@ -116,7 +117,7 @@ If macOS blocks the first launch: right-click the file → Open.
 ```bash
 python3 ysa-cli.py                       # interactive menu
 python3 ysa-cli.py --quick               # 1 video, saved defaults, no questions
-python3 ysa-cli.py --batch 8             # any number of videos, saved defaults
+python3 ysa-cli.py --batch 3             # 3 videos (only 1 or 3 allowed), saved defaults
 python3 ysa-cli.py --quick --topic "Why Do We Yawn"   # custom topic (single video)
 python3 ysa-cli.py --quick --privacy none             # override privacy for this run only
 python3 ysa-cli.py --setup               # choose and save defaults, then exit
@@ -125,7 +126,7 @@ python3 ysa-cli.py --setup               # choose and save defaults, then exit
 | Flag | Meaning |
 |---|---|
 | `--quick` | Make 1 video with your saved defaults, no questions |
-| `--batch N` | Make N videos with your saved defaults |
+| `--batch 1\|3` | Make 1 or 3 videos with your saved defaults. **Hard limit: 3 videos a day**; asking for more is refused |
 | `--setup` | Choose and save default settings, then exit |
 | `--topic "…"` | Custom topic (single video only) |
 | `--privacy {public,private,unlisted,none}` | Override the saved privacy for this run |
@@ -137,7 +138,7 @@ python3 ysa-cli.py --setup               # choose and save defaults, then exit
 Running with no flags shows:
 
 1. **Make 1 video** — with your saved defaults
-2. **Make 5 videos** — with your saved defaults (narrators shuffled)
+2. **Make 3 videos** — with your saved defaults (narrators shuffled)
 3. **Customize this run** — pick a topic and settings just for this run (and optionally save them)
 4. **Change saved defaults**
 
@@ -153,7 +154,7 @@ Saved in `data/settings.json` (edit through `--setup` or menu option 4).
 | **Narrator voice** | `marin`, `cedar`, `nova`, `coral`, `sage`, `ash`, `ballad`, `verse`, `alloy`, `echo`, `fable`, `onyx`, `shimmer` |
 | **Voices in a batch** | `shuffle` (a different narrator on every video) · `same` (use the narrator above) |
 
-> ⚠️ If privacy is **public**, every finished video is published immediately — including all five in a batch.
+> ⚠️ If privacy is **public**, every finished video is published immediately — including all three in a batch.
 > Use `private` until you trust the output, or `none` to review files first.
 
 Audio samples of every voice (same line, same style) are in `assets/voice_samples/` if you generated them — listen and edit `VOICE_POOL` to taste.
@@ -176,11 +177,11 @@ An interrupted run leaves its partial files in its `data/output/<timestamp>/` fo
 
 Rough cost per video (about 11 pictures + script + narration):
 
-| Image quality | Per video | 5-video batch |
+| Image quality | Per video | 3-video batch |
 |---|---|---|
-| low | ~$0.16 | ~$0.80 |
-| medium | ~$0.21 | ~$1.07 |
-| high | ~$0.56 | ~$2.78 |
+| low | ~$0.16 | ~$0.48 |
+| medium | ~$0.21 | ~$0.64 |
+| high | ~$0.56 | ~$1.67 |
 
 Images dominate the cost. A fresh picture costs ~$0.005 / $0.010 / $0.041 (low / medium / high) and each *reference
 edit* (shots 2–3) costs the same **plus ~$0.014**, because the reference image is billed as input. A measured

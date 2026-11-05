@@ -19,7 +19,9 @@ def save_db(path, data):
 def all_used_titles():
     titles = set()
     for e in load_db(DRAFT_DB) + load_db(FINAL_DB):
-        titles.add(e.get("title", "").lower())
+        for k in ("title", "topic"):                 # the YouTube title AND the topic it came from
+            if e.get(k):
+                titles.add(e[k].lower())
     return titles
 
 def get_pending():

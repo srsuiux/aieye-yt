@@ -54,6 +54,8 @@ def fetch_trends():
 
 def trending_topic(client):
     """Fetch what is trending now and turn the best fit into a Short topic. Does not touch the DB."""
+    from .store import all_used_titles
+    from .topics import unique_topic
     section("STEP 0  —  Trending topic (web)")
     with spin("Checking what is trending..."):
         items = fetch_trends()
@@ -63,18 +65,21 @@ def trending_topic(client):
 
     listing = "\n".join(f"{i+1}. [{t['source']}] {t['title']}" + (f" — {t['context']}" if t["context"] else "")
                         for i, t in enumerate(items))
-    avoid = "\n".join(f"- {t}" for t in _used_this_run) or "None."
-    prompt = f"""You run a YouTube Shorts channel of surprising facts for a general audience (kids and adults).
+
+    def make(rejected):
+        avoid = "\n".join(f"- {t}" for t in _used_this_run + sorted(all_used_titles()) + rejected) or "None."
+        prompt = f"""You run a YouTube Shorts channel of surprising facts for curious kids (core viewers 8-12, family-safe).
 Below is what is trending on the web right now. Pick the ONE item that makes the best "5 surprising facts" Short.
 
-Good: science, space, nature, animals, history, technology, psychology, geography, health, culture, famous
-places/people from history, big events with a fascinating story behind them.
+Good: animals, space, nature, the human body, everyday science, records and extremes, famous places,
+history stories a kid would find amazing.
 {AUDIENCE_NOTES}
-Prefer items that fit those strengths.
-Skip: tragedies and deaths, crimes, politics and elections, sexual or graphic content, gambling, gossip about
-living private people, anything where facts could be unsettled or unverifiable.
+Prefer items that fit those strengths. If nothing fits, pick the item with the most kid-friendly science or nature angle.
+Skip (strict): tragedies and deaths, crimes, wars, politics and elections, sexual or graphic content, gambling,
+alcohol or drugs, celebrity or influencer gossip, anything frightening for a child, anything where facts could be
+unsettled or unverifiable.
 
-Already used in this run (do not pick again):
+Already used or rejected (do not pick again, and do not re-angle the same subject):
 {avoid}
 
 Trending items:
@@ -82,15 +87,17 @@ Trending items:
 
 Write the topic as a specific, curiosity-driven title (not just the trend name), with an angle built on
 well-established facts, not on unconfirmed news. Return ONLY JSON:
-{{"trend": "the item you chose", "title": "the Short's topic", "hook": "one sentence: why people care right now"}}"""
-    with spin("Picking the best trend for a Short..."):
-        res = client.chat.completions.create(
-            model=GPT_MODEL, messages=[{"role": "user", "content": prompt}],
-            reasoning_effort="none", temperature=0.7, response_format={"type": "json_object"})
-    u = res.usage
-    track("gpt trending", (getattr(u, "prompt_tokens", 0) / 1e6 * GPT_IN_COST) +
-                          (getattr(u, "completion_tokens", 0) / 1e6 * GPT_OUT_COST))
-    pick = json.loads(res.choices[0].message.content)
+{{"trend": "the item you chose", "title": "the Short's topic", "hook": "one sentence: why kids will care"}}"""
+        with spin("Picking the best trend for a Short..."):
+            res = client.chat.completions.create(
+                model=GPT_MODEL, messages=[{"role": "user", "content": prompt}],
+                reasoning_effort="none", temperature=0.7, response_format={"type": "json_object"})
+        u = res.usage
+        track("gpt trending", (getattr(u, "prompt_tokens", 0) / 1e6 * GPT_IN_COST) +
+                              (getattr(u, "completion_tokens", 0) / 1e6 * GPT_OUT_COST))
+        return json.loads(res.choices[0].message.content)
+
+    pick = unique_topic(client, make)
     _used_this_run.append(pick.get("trend", pick["title"]))
     log(f"Trend: {pick.get('trend','?')}", "dim", indent=1)
     log(f"Topic: {pick['title']}", "cyan", indent=1)

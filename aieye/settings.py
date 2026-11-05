@@ -1,10 +1,11 @@
 import sys, time, json
 from .config import SETTINGS_FILE, CFG, EDIT_REF_COST, EXPECTED_SHOTS, IMAGE_COST, N_SCENES
+from .limits import DAILY_LIMIT, check_count_choice, enforce_daily, pushed_today
 from .ui import c, fail, ok, prompt_choice, prompt_text
 
 # SETTINGS — saved defaults, run modes
 
-BATCH_DEFAULT = 5
+BATCH_DEFAULT = 3          # the only batch size; 1 or 3 videos per run, max 3 a day (aieye/limits.py)
 SETTING_CHOICES = {
     "image_style":    ["representational", "realistic", "illustrated"],
     "image_quality":  list(IMAGE_COST),
@@ -139,11 +140,12 @@ def prompt_settings(ask_topic=True):
     )
 
 def print_run_config(count):
+    enforce_daily(count)                        # refuses (and exits) before anything is shown or started
     per   = est_cost_per_video(CFG["image_quality"])
     print()
     print(c("  ── Run Configuration ─────────────────────────", "cyan"))
-    print(f"  Videos     {c(str(count), 'cyan')}")
-    print(f"  Topic      {c(CFG['manual_topic'] or ('Trending on the web' if CFG.get('trending') else 'Auto from queue'), 'cyan')}")
+    print(f"  Videos     {c(str(count), 'cyan')}   {c(f'(today: {pushed_today()} pushed, limit {DAILY_LIMIT} a day)', 'dim')}")
+    print(f"  Topic      {c(CFG['manual_topic'] or ('Trending on the web' if CFG.get('trending') else 'Top categories' if CFG.get('top') else 'Auto from queue'), 'cyan')}")
     print(f"  Style      {c(CFG['image_style'], 'cyan')}")
     img_cost = IMAGE_COST[CFG["image_quality"]]
     print(f"  Quality    {c(CFG['image_quality'], 'cyan')}  {c('(~$%.3f/image)' % img_cost, 'dim')}")
@@ -176,13 +178,14 @@ def confirm_start(wait=None):
 def parse_run_flags(tokens):
     """`aieye run -trending -1 -def` → the same Namespace the normal flags produce.
         -trending   topic comes from what is trending on the web (queue/history not consulted)
-        -N          make N videos (-1, -5, ...)
+        -top        topics from the top-performing categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
+        -1 / -3     make 1 or 3 videos (no other number; never more than 3 a day)
         -def        use saved defaults, no questions, narrator shuffled
         -custom ... your own topic (single video; -topic is the same)     -privacy P / -quality Q   per-run overrides"""
     import argparse
     ns = argparse.Namespace(languages=["en"], quick=False, batch=None, setup=False, yes=False, topic=None,
-                            privacy=None, quality=None, trending=False, use_def=False)
-    known = {"trending", "trend", "def", "default", "defaults", "custom", "topic", "privacy", "quality", "y", "yes"}
+                            privacy=None, quality=None, trending=False, top=False, use_def=False)
+    known = {"top", "trending", "trend", "def", "default", "defaults", "custom", "topic", "privacy", "quality", "y", "yes"}
     from .languages import lang_code
     is_flag = lambda t: t.startswith("-") and (t.lstrip("-").lower() in known or t.lstrip("-").isdigit()
                                                or lang_code(t) is not None)
@@ -193,9 +196,12 @@ def parse_run_flags(tokens):
         i += 1
         if k in ("trending", "trend"):
             ns.trending = True
+        elif k == "top":
+            ns.top = True
         elif k in ("def", "default", "defaults"):
             ns.use_def = True
-        elif k.isdigit() and int(k) > 0:
+        elif k.isdigit():
+            check_count_choice(int(k))          # only -1 or -3
             ns.batch = int(k)
         elif t.startswith("-") and lang_code(k):
             langs.append(lang_code(k))
@@ -212,7 +218,7 @@ def parse_run_flags(tokens):
             while i < len(tokens) and not is_flag(tokens[i]):
                 words.append(tokens[i]); i += 1
         else:
-            fail(f"Unknown option '{t}'.  Usage: aieye run [-trending] [-N] [-def] [-custom your topic here]")
+            fail(f"Unknown option '{t}'.  Usage: aieye run [-trending|-top] [-N] [-def] [-custom your topic here]")
     ns.languages = list(dict.fromkeys(langs)) or ["en"]
     if custom:
         text = " ".join(words).strip()
@@ -233,7 +239,7 @@ def get_args():
         return parse_run_flags(sys.argv[2:])
     ap = argparse.ArgumentParser(description="AI Eye Shorts pipeline")
     ap.add_argument("--quick", action="store_true", help="make 1 video with your saved defaults, no questions")
-    ap.add_argument("--batch", type=int, metavar="N", help="make N videos with your saved defaults, no questions")
+    ap.add_argument("--batch", type=int, choices=[1, 3], metavar="N", help="make 1 or 3 videos with your saved defaults, no questions (max 3 a day)")
     ap.add_argument("--setup", action="store_true", help="choose and save your default settings, then exit")
     ap.add_argument("--yes", action="store_true", help="skip the countdown before starting")
     ap.add_argument("--topic", help="custom topic (single video only)")
@@ -261,6 +267,9 @@ def setup_run(args):
             fail("No saved defaults yet. Run once:  python3 ysa-cli.py --setup")
         CFG.update(saved)
         CFG["trending"] = getattr(args, "trending", False)
+        CFG["top"] = getattr(args, "top", False)
+        if CFG["top"]:
+            CFG["image_style"] = "realistic"
         CFG["languages"] = getattr(args, "languages", ["en"])
         if getattr(args, "use_def", False):
             CFG["force_shuffle"] = True        # -def: a random narrator from the pool, even for one video
@@ -278,6 +287,7 @@ def setup_run(args):
 
     # ── Interactive ───────────────────────────────────────
     CFG["trending"] = getattr(args, "trending", False)
+    CFG["top"] = getattr(args, "top", False)
     if not saved:
         print(c("\n  First run — let's set your default settings (one time).", "white"))
         prompt_settings(ask_topic=False)

@@ -1,5 +1,5 @@
 import re, json
-from .config import CFG, GPT_IN_COST, GPT_MODEL, GPT_OUT_COST, MAX_SHOTS, MIN_SHOT_WORDS, N_SCENES
+from .config import CFG, KID_RULES, GPT_IN_COST, GPT_MODEL, GPT_OUT_COST, MAX_SHOTS, MIN_SHOT_WORDS, N_SCENES
 from .costs import track
 from .store import load_ckpt, save_ckpt
 from .ui import fail, log, ok, section, skip, spin, warn
@@ -10,8 +10,9 @@ def build_visual_prompt_style():
     """Return style instructions based on user's image style choice."""
     if CFG["image_style"] == "realistic":
         return (
-            "Style: photorealistic, cinematic, dramatic lighting, high detail. "
-            "Real-world scene that illustrates the fact visually. "
+            "Style: photorealistic, cinematic, dramatic lighting, razor-sharp high detail. "
+            "Image-focused: ONE hero subject, shot as an extreme close-up or tight macro so it fills most of the frame, "
+            "big, bold and instantly clear on a phone screen. Shallow depth of field, blurred simple background. "
             "No text overlays needed — pure visual storytelling."
         )
     elif CFG["image_style"] == "illustrated":
@@ -82,6 +83,13 @@ def scan_script(data):
             warn(f"Scene {s['scene']}: AI-sounding phrase(s): {', '.join(hits)}")
         if any(ch in s["narration"] for ch in "—–…!%&()"):
             warn(f"Scene {s['scene']}: contains characters TTS reads badly (— … ! % & parentheses)")
+        sents = [x for x in re.split(r"(?<=[.?])\s+", s["narration"].strip()) if x]
+        long_s = [x for x in sents if len(x.split()) > 20]
+        if long_s:
+            warn(f"Scene {s['scene']}: sentence over 20 words (kid level): \"{long_s[0][:50]}...\"")
+        hard = sorted({w for w in re.findall(r"[a-z]+", text) if len(w) >= 12})
+        if hard:
+            warn(f"Scene {s['scene']}: long word(s) a kid may not know: {', '.join(hard)}")
         if not 12 <= words <= 34:
             warn(f"Scene {s['scene']}: {words} words (target 14-30)")
     if not 100 <= total <= 150:
@@ -111,7 +119,7 @@ Rules:
 - Include a fact ONLY if you are highly confident it is true and widely documented.
   If you're unsure of an exact number, describe it loosely ("roughly", "more than", "about")
   or drop the fact. Never invent statistics, dates, studies or quotes.
-- Prefer facts a 12-year-old could repeat to a friend at lunch.
+- Prefer facts a 10-year-old could repeat to a friend at lunch. No fact may involve death, injury, violence or disaster.
 - Prefer physical, everyday comparisons (a football field, a thumbnail, a car) over abstractions.
 - Skip anything that's just a scary headline. We want wonder, not doom.
 
@@ -123,6 +131,8 @@ For each fact give:
 
 Then write:
 THROUGH-LINE: one question or tension the Short can open in its first line and pay off in its last.
+
+{KID_RULES}
 
 Plain text, numbered 1-{N_SCENES}. No JSON."""
 
@@ -158,9 +168,11 @@ STRUCTURE ({N_SCENES} scenes)
 - Scene {N_SCENES}: pay off the through-line with a specific image or a small twist.
   No moral, no summary, no "this reminds us".
 
+{KID_RULES}
+
 SOUND HUMAN
 - Talk to one person. Use "you" and contractions (it's, doesn't, that's, can't).
-- Vary rhythm: include a very short sentence (2-5 words) and a longer flowing one (14-22 words).
+- Vary rhythm: include a very short sentence (2-5 words) and a longer one (up to 18 words, never more than 20).
   Don't give every sentence the same shape.
 - 14-30 words per scene (all its shots together), about 110-135 words in total.
 - Concrete beats abstract: a number plus a comparison beats an adjective.
@@ -201,8 +213,11 @@ VISUALS
   style, any recurring motif), so the set feels like one video.
 - Each "visual_prompt" describes only what's specific to that shot. Be literal: name every element,
   label, arrow, color and position.
-- Layout: the main subject sits in the upper-middle of the frame. Keep the bottom third simple and
-  uncluttered (plain background, no text, no key objects) because captions go there.
+- Zoomed in: make the subject LARGE. It fills at least 70% of the frame width and the upper two-thirds of the
+  height (close-up, macro or tight crop; never a small subject in a big empty scene). Wide establishing shots
+  still frame the hero subject big and clear.
+- Layout: keep the bottom third free of key details (soft, dark or blurred continuation of the scene, no text)
+  because captions go there.
   Keep any label inside the central 80% of the width.
 
 TITLE: under 60 characters, curious and honest. No "You Won't Believe", no all caps.
@@ -243,7 +258,11 @@ script aloud, and it must sound like a real person telling a friend something am
 Draft:
 {json.dumps(draft_data, indent=2)}
 
+{KID_RULES}
+
 Read every narration aloud in your head and fix:
+0. Kid level: any word a fourth grader would not know is replaced with a simpler one (or explained at once);
+   any sentence over 20 words is split; anything scary, violent or about death/injury is removed.
 1. Written, not spoken: headline fragments, noun-stack openers, formal words (threaten, surge,
    numerous, iconic), passive voice. Rewrite the way a person would actually say it.
 2. AI tells: banned words (delve, tapestry, unveil, unleash, mind-blowing, forever, shocking, stunning),

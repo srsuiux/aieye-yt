@@ -5,6 +5,7 @@ from .audio import generate_audio, get_durations
 from .client import get_client
 from .config import CFG, CHANNEL, DB_DIR, OUTPUT_DIR
 from .images import generate_images
+from .limits import DAILY_LIMIT, pushed_today
 from .languages import LANGS, localize_script
 from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
@@ -188,6 +189,9 @@ def main():
     base_voice = CFG["tts_voice"]
     results, t0 = [], time.time()
     for n in range(1, count + 1):
+        if pushed_today() >= DAILY_LIMIT:
+            warn(f"I can't create more than {DAILY_LIMIT} videos a day: today's limit is reached. Stopping here.")
+            break
         if voices:
             CFG["tts_voice"] = voices[n - 1]
         if count > 1:

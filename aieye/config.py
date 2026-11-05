@@ -25,6 +25,15 @@ EXPECTED_SHOTS = 2.2    # average pictures per scene, used for the cost estimate
 EDIT_REF_COST  = 0.014  # extra cost of a reference-image edit vs a fresh picture (the reference is billed as input)
 N_TOPICS   = 10
 
+# Top-performing categories (from the channel analytics). `aieye run -top` rotates through these, one per video.
+# Food/geography lists were tested and flopped (durian 16 views, chocolate 40, pancakes 2), so they are NOT here.
+TOP_CATEGORIES = [
+    "bizarre animals and animal adaptations (one striking animal, shown close up)",
+    "space and astronomy at cosmic scale (planets, galaxies, black holes, nebulae)",
+    "underwater and deep-sea creatures (ocean animals, reefs, trenches)",
+    "everyday 'what if' and 'can you' puzzles with common objects (a straw, a pizza, a shadow, a spinning skater)",
+]
+
 GPT_MODEL     = "gpt-6-luna"
 # Pinned snapshot: measured with a "slow" vs "fast" instruction, the March 2025 snapshot changed
 # pace ~2x and had the most natural pitch movement; the current alias and the 2025-12-15
@@ -71,13 +80,33 @@ CFG = {
 
 
 
-# What works for THIS channel (YouTube Studio, last 28 days as of Oct 2026). Fed into every topic prompt;
-# edit the text, not the code, when the analytics change.
-AUDIENCE_NOTES = """What has worked best on this channel (use it to choose and word topics):
-- Bizarre animal adaptations and biology: vivid, shocking, concrete (a fish that climbs waterfalls with its mouth,
-  a sea cucumber that ejects its organs). Highest like-to-view ratio.
-- Mind-bending space and astronomy at cosmic scale (galaxies colliding, Earth smaller than a pixel). Most views and
-  longest watch time.
-- Counter-intuitive everyday physics framed as a question in the first seconds (how does a skater spin faster
-  without a push?).
-- Provocative, curiosity-driven science; one clear surprising idea; 45-50 second Shorts. Over 99% of traffic is Shorts."""
+# What works for THIS channel (YouTube Studio, Oct 2026) as PATTERNS, never as subjects to copy: naming the winners made
+# the topic model re-make them (fish/lizard/galaxy repeats got 5-60x fewer views than the originals). Edit the text,
+# not the code, when the analytics change.
+AUDIENCE_NOTES = """AUDIENCE: curious kids aged 8 to 12 (and the grown-ups who watch with them). Every topic must make sense to
+a fourth grader with no background. Family-safe, always.
+
+What has worked on this channel (patterns only; never copy a subject that was already made):
+- ONE striking thing a kid can picture in one second: a single animal, object or place, shown big and close.
+- A question whose obvious answer feels wrong ("Would X notice if Y disappeared?", "Can N cuts make M pieces?").
+- Weird animal bodies and behaviours. Gross-but-harmless is great; scary is not.
+- Size, speed, age and distance a kid can feel, using comparisons to things they know (a school bus, a pizza).
+- Everyday things kids have touched or seen: a straw in a glass, a shadow, a spinning chair.
+
+What has NOT worked (avoid): abstract ideas with nothing to see (number theory, proofs, philosophy), food-and-travel
+lists, generic "top 5" lists, anything aimed at adults (money, politics, news, celebrities).
+
+STRICT RULES
+- Every topic is a NEW subject: never an animal, object, place or phenomenon already made, even from a new angle.
+- No death, injury to people, violence, war, disasters, disease, drugs, scary or gross-out-for-shock content.
+- No medical or safety advice, no brands, no real private people.
+- If a kid could not explain it back to a friend after one watch, it is too hard: pick something simpler."""
+
+# Reading level and tone for the script (used in every script pass).
+KID_RULES = """KID LEVEL (strict)
+- Write for a curious 10-year-old. Use words a fourth grader already knows. If a science word is truly needed,
+  explain it in the same sentence in plain words, and use at most one such word per video.
+- Short sentences: most under 12 words, none over 20. One idea per sentence.
+- Compare with things a kid knows (a school bus, a football field, a pizza, a pet), not with abstractions.
+- Playful and a little funny, never babyish and never scary. Nothing about death, injury, violence or disasters.
+- Ask the viewer one thing to picture or guess, early, then pay it off."""
