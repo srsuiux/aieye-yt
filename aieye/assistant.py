@@ -80,14 +80,31 @@ def trim(messages):
     return messages[users[-KEEP_TURNS]:] if len(users) > KEEP_TURNS else messages
 
 
+_NO_REASONING = {"on": True}      # flips off for the rest of the session if a model rejects reasoning_effort="none"
+
+
+def _create(client, model, msgs, tools):
+    """Chat completions with tools. Some models refuse function tools while they reason ("Function tools with reasoning_effort
+    are not supported"), so ask for no reasoning; if a model does not accept that value either, ask without it."""
+    kw = dict(model=model, messages=msgs, tools=tools, stream=True)
+    if _NO_REASONING["on"]:
+        try:
+            return client.chat.completions.create(reasoning_effort="none", **kw)
+        except Exception as e:
+            s = str(e).lower()
+            if "reasoning_effort" not in s and "reasoning" not in s:
+                raise
+            _NO_REASONING["on"] = False
+    return client.chat.completions.create(**kw)
+
+
 def run_turn(client, model, system, messages, call_tool, on_text, on_step, tools=TOOLS):
     """Run one reply. `messages` (OpenAI format, without the system message) is extended in place with everything that was said and
     done. call_tool(name, args) -> a JSON-able dict. on_text(full_text) is called as text streams in; on_step(id, name, label, status,
     detail) as each tool starts and finishes. Returns the final text."""
     final = ""
     for _ in range(MAX_ROUNDS):
-        stream = client.chat.completions.create(model=model, messages=[{"role": "system", "content": system}] + trim(messages),
-                                                tools=tools, stream=True)
+        stream = _create(client, model, [{"role": "system", "content": system}] + trim(messages), tools)
         text, calls, last_emit = "", {}, 0.0
         for chunk in stream:
             if not getattr(chunk, "choices", None):
