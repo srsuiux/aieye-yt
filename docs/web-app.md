@@ -83,6 +83,11 @@ The app then prints a link that contains a random access token. The badge change
 
 The moon button in the top bar switches between light and dark. By default the app follows your system setting.
 
+## The Assistant
+
+The **Assistant** page (beta) is a chat where you describe a video and Iris plans it, shows the cost, runs it in front of you and
+helps you publish it. See [Assistant (beta)](/docs/assistant).
+
 ## Notices in the app
 
 The key points of [Privacy](/docs/privacy), [Terms of use](/docs/terms) and [Copyright and content](/docs/copyright) are shown

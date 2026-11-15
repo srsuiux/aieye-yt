@@ -6,6 +6,7 @@
     { target: "settings", title: "Settings", body: "Your defaults: picture style and quality, who can watch uploads, and the narrator. Advanced holds the models, the look of the video and the daily upload limit." },
     { target: "channel", title: "Channel", body: "Your channel's name, description and tags, added to every upload, plus notes on who your videos are for so topic ideas fit." },
     { target: "topics", title: "Topics", body: "The queue of ideas that videos are made from. Add your own, change the order, and see what has already been made, so nothing repeats." },
+    { target: "assistant", title: "Assistant (beta)", body: "Iris is a chat assistant. Tell it the video you want, watch it work step by step, and press a button to start it. It never spends money or publishes on its own." },
     { target: "create", title: "Create", body: "Make a video. Choose the topic, languages and look, see the cost, and confirm before anything is spent. Then watch each step and review the video before it uploads." },
     { target: "library", title: "Library", body: "Videos that are made but not uploaded yet, and the ones already live. Preview them, edit the title and description, and upload when you are ready." },
     { target: "studio", title: "Studio (beta)", body: "Optional experiments with AI video: make pictures, turn one into a clip, write only a script, or make a whole film. Each shows its cost before it spends anything." },

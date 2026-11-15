@@ -45,6 +45,10 @@
     "section": "Using it",
     "pages": [
       {
+        "slug": "assistant",
+        "title": "Assistant (beta)"
+      },
+      {
         "slug": "create",
         "title": "Create a video"
       },

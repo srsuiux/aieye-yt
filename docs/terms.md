@@ -24,6 +24,7 @@ a suspended channel or a banned account. See the full text in the license.
   Google and the [YouTube API Services Terms of Service](https://developers.google.com/youtube/terms/api-services-terms-of-service),
   and YouTube's Community Guidelines and policies, including how to label content that is made with AI. AI Eye does not
   guarantee that your videos meet these rules or that a channel will be monetised.
+- **The assistant.** Iris is an AI and can misunderstand you. Read each plan card before you press a button: your click, not the chat, starts a video or an upload.
 - **Your keys.** Keep them secret. Anyone who has them can spend your money.
 - **Daily limit.** AI Eye refuses to push more than your daily limit (3 by default) to YouTube. This is a safety brake, not a
   promise about YouTube's own limits.

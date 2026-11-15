@@ -9,24 +9,25 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from .. import envfile
+from .. import assistant, envfile
 from ..languages import LANGS
 from ..config import IMAGE_COST, CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
 from ..settings import VOICE_INFO, voice_label
 from ..store import load_db
-from . import connections, data, docs, jobs, studio
+from . import chat, connections, data, docs, jobs, library, studio
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_PORT = 8420
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
-PAGE_ROOTS = {"", "create", "runs", "library", "topics", "channel", "settings", "connections", "docs", "studio"}
+PAGE_ROOTS = {"", "assistant", "create", "runs", "library", "topics", "channel", "settings", "connections", "docs", "studio"}
 ASSET_PATHS = ("/static", "/api", "/studio/file", "/library/video", "/jobs")
 
 NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
     {"href": "/create",      "label": "Create",      "icon": "plus"},
+    {"href": "/assistant",   "label": "Assistant",   "icon": "spark", "badge": "Beta"},
     {"href": "/library",     "label": "Library",     "icon": "film"},
     {"href": "/studio",      "label": "Studio",      "icon": "flask", "badge": "Beta"},
     {"href": "/topics",      "label": "Topics",      "icon": "list"},
@@ -128,6 +129,48 @@ def create_app(token=None, bind_host="127.0.0.1"):
                     queued=len(queue), sources=jobs.SOURCES, active=jobs.active(), has_key=envfile.key_status("OPENAI_API_KEY")["set"],
                     can_upload=connections.youtube_status()["signed_in"], extra_lang=jobs.EXTRA_LANGUAGE_COST)
 
+    # ── Assistant ──────────────────────────────────────────────────────────────────────────────────────────────
+    @app.get("/assistant", response_class=HTMLResponse)
+    def assistant_page(request: Request):
+        return page(request, "assistant.html", title="Assistant", who=assistant.NAME, has_key=envfile.key_status("OPENAI_API_KEY")["set"])
+
+    @app.get("/api/chat")
+    def api_chat_latest():
+        conv = chat.latest()
+        return {"ok": True, "chat": conv.id, **conv.since(0)}
+
+    @app.post("/api/chat/new")
+    def api_chat_new():
+        return {"ok": True, "chat": chat.new().id}
+
+    @app.get("/api/chat/{cid}")
+    def api_chat_poll(cid: str, after: int = 0):
+        try:
+            return {"ok": True, **chat.get(cid).since(after)}
+        except chat.ChatError as e:
+            return bad(str(e), 404)
+
+    @app.post("/api/chat/{cid}/message")
+    async def api_chat_message(cid: str, request: Request):
+        try:
+            chat.get(cid).send((await request.json()).get("text"))
+            return {"ok": True}
+        except chat.ChatError as e:
+            return bad(str(e))
+
+    @app.post("/api/chat/{cid}/cards/{eid}/{action}")
+    async def api_chat_card(cid: str, eid: str, action: str, request: Request):
+        try:
+            conv = chat.get(cid)
+            if action == "confirm":
+                return {"ok": True, "job": conv.confirm(eid, await request.json())}
+            if action == "discard":
+                conv.discard(eid)
+                return {"ok": True}
+            return bad("Unknown action.", 404)
+        except chat.ChatError as e:
+            return bad(str(e))
+
     # ── Studio ─────────────────────────────────────────────────────────────────────────────────────────────────
     @app.get("/studio", response_class=HTMLResponse)
     def studio_index(request: Request):
@@ -207,21 +250,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
 
     # ── Library: videos kept on this computer ────────────────────────────────────────────────────────────────
     def library_items():
-        act = jobs.active()
-        items = []
-        for video in sorted(OUTPUT_DIR.glob("*/short.mp4")) + sorted(OUTPUT_DIR.glob("*/*/short.mp4")):
-            folder = video.parent
-            if act and folder.stat().st_mtime >= act["created"] - 5:
-                continue                                # still being made or waiting for review
-            try:
-                meta = json.loads((folder / "youtube_metadata.json").read_text())
-            except (OSError, ValueError):
-                continue
-            items.append({"id": str(folder.relative_to(OUTPUT_DIR)), "title": meta.get("title", folder.name), "meta": meta,
-                          "when": datetime.fromtimestamp(video.stat().st_mtime).strftime("%b %d, %H:%M"),
-                          "size": round(video.stat().st_size / 1e6, 1), "lang": LANGS.get(meta.get("lang", "en"), ("English",))[0],
-                          "tags": meta.get("tags") or CHANNEL["tags"]})
-        return list(reversed(items))
+        return library.kept_videos()
 
     def uploaded_items():
         out = []
@@ -235,10 +264,10 @@ def create_app(token=None, bind_host="127.0.0.1"):
         return out
 
     def kept_folder(folder_id):
-        p = (OUTPUT_DIR / folder_id).resolve()
-        if OUTPUT_DIR.resolve() not in p.parents or not (p / "short.mp4").exists():
-            raise HTTPException(404, "That video is no longer on this computer.")
-        return p
+        try:
+            return library.kept_folder(folder_id)
+        except LookupError as e:
+            raise HTTPException(404, str(e))
 
     @app.get("/library/video/{folder_id:path}")
     def library_video(folder_id: str):

@@ -22,6 +22,7 @@ AI Eye talks to outside services only when you use a feature that needs them. Ea
 | Service | When | What is sent |
 |---|---|---|
 | **OpenAI** | Writing scripts and topics, narration, pictures, Studio Stills, Script and Film | Your topic, the script text and picture descriptions, and your OpenAI key |
+| **OpenAI**, for the chat assistant | When you chat with Iris | Your messages and short facts about your queue, runs and Library, so it can answer |
 | **OpenRouter** and the video model's company | Studio Clip and Film | Your motion or scene descriptions, the start picture for Clip, and your OpenRouter key |
 | **Google / YouTube** | Connecting YouTube and uploading | Your video, title, description, tags and your sign-in. Uploads go to your own channel using your own Google project. |
 | **Google Trends** and **Wikimedia** | Only if you choose trending topics | A plain request for today's public trending lists. Nothing about you is sent. |

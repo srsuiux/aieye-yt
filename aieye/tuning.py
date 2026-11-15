@@ -33,6 +33,12 @@ MODEL_CATALOG = {
         ("gpt-6-sol",    "OpenAI", ["strong reasoning"],        "$2 in / $10 out per 1M tokens", "Previous version of 6.1 sol."),
         ("gpt-6-astra",  "OpenAI", ["best quality", "most expensive"], "$10 in / $50 out per 1M tokens", "Top tier. About 5 times the cost of sol."),
     ],
+    "ASSISTANT_MODEL": [
+        ("gpt-6-luna",   "OpenAI", ["cheapest", "fastest"], "$0.10 in / $0.50 out per 1M tokens", "Fine for simple requests. May miss details in longer chats."),
+        ("gpt-6.1-terra", "OpenAI", ["balanced"], "$1 in / $5 out per 1M tokens", "Good at following instructions and using tools. A chat reply costs about half a cent."),
+        ("gpt-6.1-sol",  "OpenAI", ["strong reasoning"], "$2 in / $10 out per 1M tokens", "Careful with tricky requests."),
+        ("gpt-6-astra",  "OpenAI", ["best quality", "most expensive"], "$10 in / $50 out per 1M tokens", "Top tier. Rarely needed for chat."),
+    ],
     "TTS_MODEL": [
         ("gpt-4o-mini-tts-2025-03-20", "OpenAI", ["follows delivery notes best"], "about $0.015 per minute of speech", "The March 2025 snapshot reacts most to the narrator direction."),
         ("gpt-4o-mini-tts-2025-12-15", "OpenAI", ["newest snapshot"], "about $0.015 per minute of speech", "Barely reacts to the narrator direction in our tests."),
@@ -58,6 +64,8 @@ def model_options(key):
 TUNABLES = {
     "GPT_MODEL":     dict(group="Models", kind="model", default="gpt-6-luna", label="Script model",
                           help="Writes topics and scripts. Any OpenAI chat model you can use."),
+    "ASSISTANT_MODEL": dict(group="Models", kind="model", default="gpt-6.1-terra", label="Assistant model",
+                          help="Runs the chat assistant (Iris). It plans and calls tools; it cannot spend money or publish without your click."),
     "TTS_MODEL":     dict(group="Models", kind="model", default="gpt-4o-mini-tts-2025-03-20", label="Voice model",
                           help="Speaks the script. The March 2025 snapshot follows delivery notes best; falls back to the plain model if retired."),
     "IMAGE_MODEL":   dict(group="Models", kind="model", default="gpt-image-2.5-flare", label="Image model",
