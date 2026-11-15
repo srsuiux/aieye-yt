@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title }} · AI Eye</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' width='18' height='32' rx='5' fill='%23f03'/%3E%3Cpath d='M13 11l8 5-8 5z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f03'/%3E%3Cpath d='M12 9l11 7-11 7z' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/static/app.css">
 <script>try{var t=localStorage.getItem("aieye-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
@@ -24,7 +24,7 @@
 {%- endmacro %}
 <header class="top">
   <button class="icon-btn" id="rail-toggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  <a class="brand" href="{{ base }}/" aria-label="AI Eye home"><span class="mark"><svg viewBox="0 0 18 32" width="18" height="32" aria-hidden="true"><rect width="18" height="32" rx="5" fill="#f03"/><path d="M6 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">AI Eye</span></a>
+  <a class="brand" href="{{ base }}/" aria-label="AI Eye home"><span class="mark"><svg viewBox="0 0 32 32" width="30" height="22"><rect width="32" height="22" y="5" rx="6" fill="#f03"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">AI Eye</span></a><span class="badge-tag">Shorts for YouTube</span>
   <span class="spacer"></span>
   <button class="icon-btn" id="tour-start" aria-label="Take the tour" title="Take the tour"><svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   <span class="chip {{ 'chip-warn' if remote else '' }}" title="{{ 'Reachable from your network' if remote else 'Only this computer can open this page' }}">{{ 'Network access on' if remote else 'Local only' }}</span>
