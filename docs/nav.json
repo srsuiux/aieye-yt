@@ -65,6 +65,10 @@
         "title": "Terminal commands"
       },
       {
+        "slug": "studio",
+        "title": "Studio"
+      },
+      {
         "slug": "experiments",
         "title": "Video experiments"
       },

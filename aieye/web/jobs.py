@@ -93,6 +93,11 @@ def start_upload(folder, meta):
     return _spawn("upload", {"folder": str(folder), "meta": clean})
 
 
+def start_studio(params):
+    """`params` is already cleaned by studio.validate()."""
+    return _spawn("studio", params)
+
+
 def _spawn(kind, params):
     if active():
         raise JobError("A video is already being made. Wait for it to finish, or cancel it.")

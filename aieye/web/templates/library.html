@@ -44,7 +44,7 @@
 
   <h2 class="section-title">Recent runs</h2>
   {% if recent %}
-  <ul class="plain">{% for r in recent %}<li><a href="/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else '')) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
+  <ul class="plain">{% for r in recent %}<li><a href="/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else ('Studio ' ~ r.params.tool if r.kind == 'studio' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else ''))) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
   {% else %}<p class="muted">No runs yet.</p>{% endif %}
 </div>
 {% endblock %}

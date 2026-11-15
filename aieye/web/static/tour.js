@@ -8,6 +8,7 @@
     { target: "topics", title: "Topics", body: "The queue of ideas that videos are made from. Add your own, change the order, and see what has already been made, so nothing repeats." },
     { target: "create", title: "Create", body: "Make a video. Choose the topic, languages and look, see the cost, and confirm before anything is spent. Then watch each step and review the video before it uploads." },
     { target: "library", title: "Library", body: "Videos that are made but not uploaded yet, and the ones already live. Preview them, edit the title and description, and upload when you are ready." },
+    { target: "studio", title: "Studio", body: "Optional experiments with AI video: make pictures, turn one into a clip, write only a script, or make a whole film. Each shows its cost before it spends anything." },
     { target: "docs", title: "Docs", body: "Guides for every page, how to get each key, how to set up YouTube, and fixes for common problems." },
     { title: "You are ready", body: "Add your OpenAI key to begin. Reopen this tour any time with the ? button at the top.", center: true, last: true }
   ];

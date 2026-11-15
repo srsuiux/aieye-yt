@@ -59,6 +59,44 @@ def run_make(job, job_dir):
     return run_batch(client, p["count"], review)
 
 
+def run_studio(job, job_dir, started):
+    """A Studio experiment (stills, clip, script or film). Returns one result listing the files it made."""
+    from .client import get_client
+    from .config import DATA_DIR
+    p = job["params"]
+    tool = p["tool"]
+    notes = None
+    if p.get("notes"):
+        notes = job_dir / "notes.txt"
+        notes.write_text(p["notes"])
+    exp = DATA_DIR / "experiments"
+    client = get_client()
+    if tool == "stills":
+        from .imgexp import run_image_experiment
+        run_image_experiment(client, p["prompt"], p["count"], p["quality"])
+    elif tool == "clip":
+        from .videxp import run_video_experiment, IMG_DIR
+        run_video_experiment(p["prompt"], (IMG_DIR / p["image"]) if p.get("image") else None, p["model"], p["res"], p["dur"], yes=True)
+    elif tool == "script":
+        from .scriptlab import make_script
+        make_script(client, p["topic"], str(notes) if notes else None)
+    else:
+        from .film import run_film
+        run_film(client, p["topic"], model=p["model"], res=p["res"], yes=True, ambient=p["ambient"], notes=str(notes) if notes else None, qa=p["qa"])
+    files = []
+    for f in sorted(exp.rglob("*"), key=lambda x: x.stat().st_mtime):
+        if not f.is_file() or f.stat().st_mtime < started - 1:
+            continue
+        n = f.name
+        keep = (n.endswith("_1080x1920.png") or n.endswith("_last.png") or n == "film_9x16.mp4" or n == "script.md"
+                or (f.suffix == ".mp4" and f.parent.name == "videos"))
+        if keep:
+            files.append({"name": n, "url": "/studio/file/" + f.relative_to(exp).as_posix(), "kind": "image" if f.suffix == ".png" else "text" if f.suffix == ".md" else "video"})
+    if not files:
+        ui.fail("The run finished but produced no files.")
+    return [{"ok": True, "title": {"stills": "Pictures", "clip": "Clip", "script": "Script", "film": "Film"}[tool], "files": files, "cost": 0.0, "error": None}]
+
+
 def run_upload(job, job_dir):
     """Upload a video that was kept on disk (not uploaded earlier). Records the YouTube id in the history."""
     import shutil
@@ -92,7 +130,9 @@ def main(job_dir):
     ui.add_listener(_listener(job_dir / "events.jsonl"))
     status, results, error = "done", [], None
     try:
-        results = run_make(job, job_dir) if job["kind"] == "make" else run_upload(job, job_dir)
+        started = time.time()
+        results = (run_make(job, job_dir) if job["kind"] == "make" else run_studio(job, job_dir, started) if job["kind"] == "studio"
+                   else run_upload(job, job_dir))
         if not results or not all(r["ok"] for r in results):
             status = "failed"
             error = next((r["error"] for r in results if r.get("error")), "No video was made.")

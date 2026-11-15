@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Studio</h1>
+  <p class="muted lead">Experiments with AI video, for trying ideas before you use them in a real video. Nothing here touches your topic queue, your daily upload limit or YouTube.</p>
+  {% if active %}<div class="banner">Something is running. <a href="/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+  <div class="tools">
+    {% for key, t in tools.items() %}
+    <a class="panel tool" href="/studio/{{ key }}">
+      <h2>{{ t.title }}</h2>
+      <p>{{ t.blurb }}</p>
+      <p class="muted small">Cost: {{ t.cost }}.{% for k in t.needs if not keys[k] %}{% if loop.first %} Needs {% endif %}{{ 'an OpenAI key' if k.startswith('OPENAI') else 'an OpenRouter key' }}{% if not loop.last %} and {% endif %}{% endfor %}</p>
+    </a>
+    {% endfor %}
+  </div>
+
+  <h2 class="section-title">Recent results</h2>
+  {% set any = recent.stills or recent.clips or recent.films or recent.scripts %}
+  {% if any %}
+  <div class="gallery">
+    {% for f in recent.films %}<figure><video controls preload="none" playsinline src="{{ f.url }}"></video><figcaption>Film · {{ f.when }}</figcaption></figure>{% endfor %}
+    {% for f in recent.clips %}<figure><video controls preload="none" playsinline src="{{ f.url }}"></video><figcaption>Clip · {{ f.when }}</figcaption></figure>{% endfor %}
+    {% for f in recent.stills %}<figure><a href="{{ f.url }}" target="_blank" rel="noopener"><img src="{{ f.url }}" alt="Still made {{ f.when }}" loading="lazy"></a><figcaption>Picture · {{ f.when }}</figcaption></figure>{% endfor %}
+  </div>
+  {% if recent.scripts %}<ul class="plain">{% for f in recent.scripts %}<li><a href="{{ f.url }}" target="_blank" rel="noopener">Script · {{ f.when }}</a></li>{% endfor %}</ul>{% endif %}
+  {% else %}
+  <div class="empty"><p>Nothing yet. Start with Stills: it is the cheapest tool and the pictures feed the Clip tool.</p><a class="btn" href="/studio/stills">Make pictures</a></div>
+  {% endif %}
+</div>
+{% endblock %}

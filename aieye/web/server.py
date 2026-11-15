@@ -11,10 +11,10 @@ from fastapi.templating import Jinja2Templates
 
 from .. import envfile
 from ..languages import LANGS
-from ..config import CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
+from ..config import IMAGE_COST, CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
 from ..store import load_db
-from . import connections, data, docs, jobs
+from . import connections, data, docs, jobs, studio
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_PORT = 8420
@@ -24,6 +24,7 @@ NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
     {"href": "/create",      "label": "Create",      "icon": "plus"},
     {"href": "/library",     "label": "Library",     "icon": "film"},
+    {"href": "/studio",      "label": "Studio",      "icon": "flask"},
     {"href": "/topics",      "label": "Topics",      "icon": "list"},
     {"href": "/channel",     "label": "Channel",     "icon": "channel"},
     {"href": "/settings",    "label": "Settings",    "icon": "sliders"},
@@ -114,6 +115,42 @@ def create_app(token=None, bind_host="127.0.0.1"):
                     queued=len(queue), sources=jobs.SOURCES, active=jobs.active(), has_key=envfile.key_status("OPENAI_API_KEY")["set"],
                     can_upload=connections.youtube_status()["signed_in"], extra_lang=jobs.EXTRA_LANGUAGE_COST)
 
+    # ── Studio ─────────────────────────────────────────────────────────────────────────────────────────────────
+    @app.get("/studio", response_class=HTMLResponse)
+    def studio_index(request: Request):
+        return page(request, "studio.html", title="Studio", tools=studio.TOOLS, recent=studio.recent(), active=jobs.active(),
+                    keys={k: bool(envfile.get_key(k)) for k in ("OPENAI_API_KEY", "OPENROUTER_API_KEY")})
+
+    @app.get("/studio/{tool}", response_class=HTMLResponse)
+    def studio_tool(request: Request, tool: str):
+        if tool not in studio.TOOLS:
+            return page(request, "error.html", status=404, title="Not found", message="That Studio tool does not exist.")
+        models, err = studio.live_models() if tool in ("clip", "film") else ([], None)
+        pool = studio.clip_models(models) if tool == "clip" else studio.film_models(models)
+        pr = studio.prices(models)
+        return page(request, "studio_tool.html", title=studio.TOOLS[tool]["label"], tool=tool, t=studio.TOOLS[tool], err=err,
+                    models=[{"id": (m["id"] if isinstance(m, dict) else m[1]), "label": (m.get("name") or m["id"]) if isinstance(m, dict) else m[0],
+                             "note": "" if isinstance(m, dict) else m[2],
+                             "res": (m.get("supported_resolutions") if isinstance(m, dict) else (next((x for x in models if x["id"] == m[1]), {}) or {}).get("supported_resolutions")) or studio.RES,
+                             "dur": (m.get("supported_durations") if isinstance(m, dict) else None) or []} for m in pool],
+                    prices=pr, stills=studio.stills(), missing=studio.missing_keys(tool), active=jobs.active(),
+                    quality=list(IMAGE_COST), image_cost=IMAGE_COST, film_seconds=studio.FILM_SECONDS, film_base=studio.FILM_BASE_COST)
+
+    @app.get("/studio/file/{rel:path}")
+    def studio_file(rel: str):
+        try:
+            return FileResponse(studio.file_path(rel))
+        except studio.StudioError as e:
+            raise HTTPException(404, str(e))
+
+    @app.post("/api/studio")
+    async def api_studio(request: Request):
+        try:
+            body = await request.json()
+            return {"ok": True, "job": jobs.start_studio(studio.validate(body.get("tool"), body))}
+        except (studio.StudioError, jobs.JobError, ValueError) as e:
+            return bad(str(e))
+
     @app.get("/runs/{job_id}", response_class=HTMLResponse)
     def run_page(request: Request, job_id: str):
         try:
@@ -121,6 +158,8 @@ def create_app(token=None, bind_host="127.0.0.1"):
         except jobs.JobError:
             return page(request, "error.html", status=404, title="Not found", message="That run does not exist any more.",
                         back=("/create", "Make a video"))
+        if st["kind"] == "studio":
+            return page(request, "studio_run.html", title="Studio run", st=st)
         return page(request, "run.html", title="Run", st=st, privacies=["public", "unlisted", "private"])
 
     @app.get("/library", response_class=HTMLResponse)

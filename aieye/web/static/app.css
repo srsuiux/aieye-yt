@@ -221,3 +221,19 @@ label.inline { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .tour-actions { display: flex; align-items: center; gap: 8px; } .tour-actions .grow { flex: 1; }
 .welcome { border-color: var(--accent); }
 .welcome p { max-width: 64ch; }
+
+/* Studio */
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 8px; }
+a.tool { text-decoration: none; color: inherit; margin: 0; } a.tool:hover { border-color: var(--text); }
+a.tool h2 { margin-top: 0; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin: 12px 0; }
+.gallery figure { margin: 0; } .gallery video, .gallery img { width: 100%; aspect-ratio: 9/16; object-fit: cover; background: #000; border-radius: var(--r); display: block; }
+.gallery figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.pick { cursor: pointer; } .pick input { position: absolute; opacity: 0; }
+.pick img { width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 8px; border: 3px solid transparent; display: block; }
+.pick input:checked + img { border-color: var(--accent); } .pick input:focus-visible + img { outline: 2px solid var(--text); outline-offset: 2px; }
+.big-num { font-size: 28px; font-weight: 600; margin: 0 0 4px; }
+.bar i.pulse { animation: pulse 1.6s ease-in-out infinite; } @keyframes pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .bar i.pulse { animation: none; } }
+.file-link { display: block; margin: 8px 0; }
