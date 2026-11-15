@@ -23,13 +23,44 @@ KID_RULES = """KID LEVEL (strict)
 - Playful and a little funny, never babyish and never scary. Nothing about death, injury, violence or disasters.
 - Ask the viewer one thing to picture or guess, early, then pay it off."""
 
-# kind: text | longtext | int | float | choice | color | voices. group order is the order shown on the page.
+# Models you can pick, per setting: (id, provider, tags, price, note). Tags come from the price tier and the author's tests, so
+# "fast" is typical for a small model, not a measurement. Add a model here and it appears in the menu.
+MODEL_CATALOG = {
+    "GPT_MODEL": [
+        ("gpt-6-luna",   "OpenAI", ["cheapest", "fastest"],     "$0.10 in / $0.50 out per 1M tokens", "Good enough for topic ideas and short scripts."),
+        ("gpt-6.1-terra", "OpenAI", ["balanced"],               "$1 in / $5 out per 1M tokens", "A step up in writing quality."),
+        ("gpt-6.1-sol",  "OpenAI", ["strong reasoning"],        "$2 in / $10 out per 1M tokens", "Used by Studio's Script tool."),
+        ("gpt-6-sol",    "OpenAI", ["strong reasoning"],        "$2 in / $10 out per 1M tokens", "Previous version of 6.1 sol."),
+        ("gpt-6-astra",  "OpenAI", ["best quality", "most expensive"], "$10 in / $50 out per 1M tokens", "Top tier. About 5 times the cost of sol."),
+    ],
+    "TTS_MODEL": [
+        ("gpt-4o-mini-tts-2025-03-20", "OpenAI", ["follows delivery notes best"], "about $0.015 per minute of speech", "The March 2025 snapshot reacts most to the narrator direction."),
+        ("gpt-4o-mini-tts-2025-12-15", "OpenAI", ["newest snapshot"], "about $0.015 per minute of speech", "Barely reacts to the narrator direction in our tests."),
+        ("gpt-4o-mini-tts",            "OpenAI", ["always latest"],    "about $0.015 per minute of speech", "Alias that moves to new snapshots. Barely reacts to the narrator direction."),
+    ],
+    "IMAGE_MODEL": [
+        ("gpt-image-2.5-flare", "OpenAI", ["current"], "about $0.04 a picture at high quality", "Draws the pictures. More models will be listed here as they are tested."),
+    ],
+}
+
+
+def model_options(key):
+    """[{id, text}] for the menu: 'id · provider · tags · price · Recommended'. Empty when the setting is not a model menu."""
+    spec = TUNABLES[key]
+    out = []
+    for mid, prov, tags, price, note in MODEL_CATALOG.get(key, []):
+        bits = [mid, prov, ", ".join(tags), price] + (["Recommended"] if mid == spec["default"] else [])
+        out.append({"id": mid, "text": " · ".join(bits), "note": note})
+    return out
+
+
+# kind: model | text | longtext | int | float | choice | color | voices. group order is the order shown on the page.
 TUNABLES = {
-    "GPT_MODEL":     dict(group="Models", kind="text", default="gpt-6-luna", label="Script model",
+    "GPT_MODEL":     dict(group="Models", kind="model", default="gpt-6-luna", label="Script model",
                           help="Writes topics and scripts. Any OpenAI chat model you can use."),
-    "TTS_MODEL":     dict(group="Models", kind="text", default="gpt-4o-mini-tts-2025-03-20", label="Voice model",
+    "TTS_MODEL":     dict(group="Models", kind="model", default="gpt-4o-mini-tts-2025-03-20", label="Voice model",
                           help="Speaks the script. The March 2025 snapshot follows delivery notes best; falls back to the plain model if retired."),
-    "IMAGE_MODEL":   dict(group="Models", kind="text", default="gpt-image-2.5-flare", label="Image model",
+    "IMAGE_MODEL":   dict(group="Models", kind="model", default="gpt-image-2.5-flare", label="Image model",
                           help="Draws the pictures."),
     "N_SCENES":      dict(group="Script and pictures", kind="int", default=5, min=3, max=7, label="Scenes per video",
                           help="More scenes make a longer video and cost more."),
@@ -89,6 +120,10 @@ def validate(key, value):
             v = str(value)
             if v not in spec["choices"]:
                 raise ValueError(f"{label} must be one of: {', '.join(spec['choices'])}.")
+        elif kind == "model":
+            v = str(value).strip()
+            if v not in [m[0] for m in MODEL_CATALOG[key]]:
+                raise ValueError(f"{label} must be one of the models in the menu.")
         elif kind == "color":
             v = str(value).strip()
             if not re.fullmatch(r"#[0-9a-fA-F]{6}", v):

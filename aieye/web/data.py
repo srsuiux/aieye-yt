@@ -46,7 +46,7 @@ def is_fresh_install():
 # ── Defaults (data/settings.json) ──────────────────────────────────────────────────────────────────────────────
 def defaults_view():
     saved = load_defaults()
-    return {"values": saved or FALLBACK_DEFAULTS, "review": review_default(), "saved": bool(saved), "choices": SETTING_CHOICES, "info": SETTING_INFO,
+    return {"values": saved or FALLBACK_DEFAULTS, "review": review_default(), "saved": bool(saved), "choices": SETTING_CHOICES, "info": SETTING_INFO, "fallback": FALLBACK_DEFAULTS,
             "cost": {q: {"one": round(est_cost_per_video(q), 2), "batch": round(est_cost_per_video(q) * BATCH_DEFAULT, 2)} for q in IMAGE_COST}}
 
 def review_default():
@@ -77,6 +77,10 @@ def tuning_view():
         for k in ("choices", "min", "max"):
             if k in spec:
                 item[k] = spec[k]
+        if spec["kind"] == "model":
+            item["options"] = tuning.model_options(key)
+        if spec["kind"] in ("model", "int", "float", "choice", "color"):
+            item["default_text"] = str(spec["default"])
         groups.setdefault(spec["group"], []).append(item)
     return [{"group": g, "items": items} for g, items in groups.items()]
 

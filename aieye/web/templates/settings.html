@@ -13,14 +13,14 @@
         <select id="d-{{ key }}" data-key="{{ key }}">
           {% for opt in d.choices[key] %}
           <option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>
-            {%- if key == 'image_quality' %}{{ opt }} · about ${{ '%.2f' | format(d.cost[opt].one) }} a video, ${{ '%.2f' | format(d.cost[opt].batch) }} for 3
-            {%- elif key == 'upload_privacy' and opt == 'none' %}none (render only, do not upload)
-            {%- elif key == 'tts_voice' %}{{ voice_label(opt) }}
-            {%- else %}{{ opt }}{% endif -%}
+            {%- if key == 'image_quality' %}{{ opt }} · about ${{ '%.2f' | format(d.cost[opt].one) }} a video, ${{ '%.2f' | format(d.cost[opt].batch) }} for 3{{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- elif key == 'upload_privacy' and opt == 'none' %}none (render only, do not upload){{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- elif key == 'tts_voice' %}{{ voice_label(opt) }}{{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- else %}{{ opt }}{{ ' · Recommended' if opt == d.fallback[key] }}{% endif -%}
           </option>
           {% endfor %}
         </select>
-        <p class="hint">{{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI and are billed to your OpenAI key.{% endif %}</p>
+        <p class="hint">Author's default: <strong>{{ d.fallback[key] }}</strong>. {{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI and are billed to your OpenAI key.{% endif %}</p>
       </div>
       {% endfor %}
       <div class="field"><label class="inline"><input type="checkbox" id="d-review" {{ 'checked' if d.review else '' }}> Review each video before it uploads</label>
@@ -48,6 +48,8 @@
               <input id="a-{{ it.key }}" type="number" data-key="{{ it.key }}" value="{{ it.value }}" min="{{ it.min }}" max="{{ it.max }}" step="{{ '1' if it.kind == 'int' else '0.02' }}">
             {% elif it.kind == 'choice' %}
               <select id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.choices %}<option {{ 'selected' if it.value == o else '' }}>{{ o }}</option>{% endfor %}</select>
+            {% elif it.kind == 'model' %}
+              <select id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.options %}<option value="{{ o.id }}" {{ 'selected' if it.value == o.id else '' }}>{{ o.text }}</option>{% endfor %}</select>
             {% elif it.kind == 'color' %}
               <input id="a-{{ it.key }}" type="color" data-key="{{ it.key }}" value="{{ it.value }}">
             {% elif it.kind == 'longtext' %}
@@ -57,7 +59,10 @@
             {% else %}
               <input id="a-{{ it.key }}" type="text" data-key="{{ it.key }}" value="{{ it.value }}" spellcheck="false">
             {% endif %}
-            <p class="hint">{{ it.help }}{% if it.kind in ('int','float') %} ({{ it.min }} to {{ it.max }}.){% endif %}</p>
+            <p class="hint">{{ it.help }}{% if it.kind in ('int','float') %} ({{ it.min }} to {{ it.max }}.){% endif %}
+              {%- if it.kind == 'model' %} <span class="model-note"></span>{% endif %}
+              {%- if it.default_text %} Author's default: <strong>{{ it.default_text }}</strong>.{% endif %}</p>
+            {% if it.kind == 'model' %}<script type="application/json" class="model-notes">{{ it.options | tojson }}</script>{% endif %}
           </div>
           {% endfor %}
         </div>

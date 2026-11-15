@@ -41,7 +41,7 @@ Only the values you changed are saved, in `data/config.json`. The rest follow th
 | Group | Setting | Range or options |
 |---|---|---|
 | Limits | Videos pushed to YouTube per day | 1 to 10 (default 3). A safety brake; runs are still 1 or 3 videos. |
-| Models | Script model, Voice model, Image model | Any model id your account can use. One word, no spaces. |
+| Models | Script model, Voice model, Image model | Pick from a menu. Each entry shows the provider, tags such as cheapest, fastest or best quality, the price, and **Recommended** on the author's default. |
 | Script and pictures | Scenes per video | 3 to 7 (default 5) |
 | | Pictures per scene (most) | 1 to 3 (default 3). 1 is the cheapest. |
 | | Shortest picture, in words | 2 to 12 (default 5) |
@@ -72,3 +72,9 @@ Your channel's name, description and tags are on the [Channel page](/docs/channe
 Every narrator in the menus is shown with the company that provides it, for example `marin · OpenAI · Natural, lively female`.
 Today all voices come from OpenAI and are billed to your OpenAI key. If other providers are added later, their voices will appear
 in the same menus with their own name.
+
+## Author's default
+
+Every setting shows **Author's default**: the value the author of AI Eye tested and recommends. In menus the same choice is
+marked **Recommended**. **Reset** puts a setting back to it. The model tags (cheapest, fastest, best quality) come from the price
+tier and the author's tests; "fastest" is what you usually get from the smallest model, not a measurement.

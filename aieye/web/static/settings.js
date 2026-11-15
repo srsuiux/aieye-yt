@@ -19,6 +19,13 @@
     });
   });
 
+  // Under each model menu, show the note for the chosen model.
+  qa("#adv-form .field[data-kind=model]").forEach(function (f) {
+    var sel = q("select", f), notes = JSON.parse(q(".model-notes", f).textContent), out = q(".model-note", f);
+    function show() { var n = notes.filter(function (o) { return o.id === sel.value; })[0]; out.textContent = n ? n.note : ""; }
+    sel.addEventListener("change", show); show();
+  });
+
   function read(f) {
     var el = q("[data-key]", f);
     if (f.dataset.kind === "voices") return qa("input:checked", el).map(function (i) { return i.value; });
