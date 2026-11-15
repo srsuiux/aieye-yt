@@ -6,6 +6,7 @@ Everything personal lives in `data/` and `.env`, which are git-ignored. You can 
 |---|---|
 | `.env` | Your API keys |
 | `data/settings.json` | Your saved default settings |
+| `data/config.json` | Advanced settings you changed (models, scenes, look). Only changed values are stored. |
 | `data/channel.json` | Your channel's name, description, tags and topic taste |
 | `data/credentials/client_secrets.json` | The YouTube client file |
 | `data/credentials/youtube_token.pickle` | Your YouTube sign-in |

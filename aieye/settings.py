@@ -1,5 +1,6 @@
 import sys, time, json
 from .config import SETTINGS_FILE, CFG, EDIT_REF_COST, EXPECTED_SHOTS, IMAGE_COST, N_SCENES
+from .tuning import tune
 from .limits import DAILY_LIMIT, check_count_choice, enforce_daily, pushed_today
 from .ui import c, fail, ok, prompt_choice, prompt_text
 
@@ -15,7 +16,7 @@ SETTING_CHOICES = {
 }
 OPTIONAL_SETTINGS = {"batch_voice": "shuffle"}     # missing in older settings files → use this
 # Voices used when a batch shuffles narrators. Samples of every voice are in assets/voice_samples/ — edit to taste.
-VOICE_POOL = ["marin", "cedar", "nova", "coral", "sage", "ash", "ballad", "verse"]
+VOICE_POOL = tune("VOICE_POOL")
 
 def shuffled_voices(count):
     """`count` narrators from VOICE_POOL: no repeats until the pool is used up, never the same twice in a row."""

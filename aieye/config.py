@@ -7,6 +7,8 @@ try:
 except ImportError:
     pass
 
+from .tuning import tune
+
 ROOT       = Path(__file__).resolve().parent.parent
 DATA_DIR   = ROOT / "data"                     # everything generated or personal lives here (git-ignored)
 OUTPUT_DIR = DATA_DIR / "output"               # one folder per video; deleted once the video is posted
@@ -17,13 +19,13 @@ SETTINGS_FILE = DATA_DIR / "settings.json"     # your saved defaults
 CREDS_DIR      = DATA_DIR / "credentials"
 CLIENT_SECRETS = CREDS_DIR / "client_secrets.json"
 YOUTUBE_TOKEN  = CREDS_DIR / "youtube_token.pickle"
-N_SCENES   = 5
-MAX_SHOTS  = 3          # pictures per scene: the scene's narration is split into 2-3 shots, one image each
-MIN_SHOT_WORDS = 5      # shorter shots are merged into a neighbour (too-short cuts read as flicker)
-IMAGE_WORKERS = 3       # scenes whose images are generated at the same time (kept low: image APIs rate-limit quickly)
+N_SCENES   = tune("N_SCENES")
+MAX_SHOTS  = tune("MAX_SHOTS")          # pictures per scene: the scene's narration is split into 2-3 shots, one image each
+MIN_SHOT_WORDS = tune("MIN_SHOT_WORDS")      # shorter shots are merged into a neighbour (too-short cuts read as flicker)
+IMAGE_WORKERS = tune("IMAGE_WORKERS")       # scenes whose images are generated at the same time (kept low: image APIs rate-limit quickly)
 EXPECTED_SHOTS = 2.2    # average pictures per scene, used for the cost estimate only
 EDIT_REF_COST  = 0.014  # extra cost of a reference-image edit vs a fresh picture (the reference is billed as input)
-N_TOPICS   = 10
+N_TOPICS   = tune("N_TOPICS")
 
 # Categories `aieye run -top` rotates through, one per video. Override with "top_categories" in data/channel.json.
 TOP_CATEGORIES = [
@@ -33,17 +35,15 @@ TOP_CATEGORIES = [
     "everyday 'what if' and 'can you' puzzles with common objects (a straw, a pizza, a shadow, a spinning skater)",
 ]
 
-GPT_MODEL     = "gpt-6-luna"
+GPT_MODEL     = tune("GPT_MODEL")
 # Pinned snapshot: measured with a "slow" vs "fast" instruction, the March 2025 snapshot changed
 # pace ~2x and had the most natural pitch movement; the current alias and the 2025-12-15
 # snapshot barely reacted to the instructions parameter. Falls back to the alias if retired.
-TTS_MODEL     = "gpt-4o-mini-tts-2025-03-20"
+TTS_MODEL     = tune("TTS_MODEL")
 TTS_FALLBACK  = "gpt-4o-mini-tts"
 TTS_VOICE     = "marin"
-TTS_STYLE     = ("Voice: a curious, warm storyteller talking to one friend, relaxed and natural, never an announcer. "
-                 "Pacing: conversational and a little quick, with short pauses at sentence ends. "
-                 "Emphasis: land on the surprising word. Avoid sing-song and forced excitement.")
-IMAGE_MODEL   = "gpt-image-2.5-flare"
+TTS_STYLE     = tune("TTS_STYLE")
+IMAGE_MODEL   = tune("IMAGE_MODEL")
 IMAGE_SIZE    = "1024x1536"
 
 GPT_IN_COST  = 0.10
@@ -101,14 +101,9 @@ STRICT RULES
 - No death, injury to people, violence, war, disasters, disease, drugs, scary or gross-out-for-shock content.
 - No medical or safety advice, no brands, no real private people.
 - If a kid could not explain it back to a friend after one watch, it is too hard: pick something simpler."""
+DEFAULT_AUDIENCE_NOTES, DEFAULT_TOP_CATEGORIES = AUDIENCE_NOTES, list(TOP_CATEGORIES)   # the generic defaults (the channel file may replace them)
 AUDIENCE_NOTES = CHANNEL.get("audience_notes", AUDIENCE_NOTES)
 TOP_CATEGORIES = CHANNEL.get("top_categories", TOP_CATEGORIES)
 
 # Reading level and tone for the script (used in every script pass).
-KID_RULES = """KID LEVEL (strict)
-- Write for a curious 10-year-old. Use words a fourth grader already knows. If a science word is truly needed,
-  explain it in the same sentence in plain words, and use at most one such word per video.
-- Short sentences: most under 12 words, none over 20. One idea per sentence.
-- Compare with things a kid knows (a school bus, a football field, a pizza, a pet), not with abstractions.
-- Playful and a little funny, never babyish and never scary. Nothing about death, injury, violence or disasters.
-- Ask the viewer one thing to picture or guess, early, then pay it off."""
+KID_RULES = tune("KID_RULES")

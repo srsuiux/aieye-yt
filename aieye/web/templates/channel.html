@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Channel</h1>
+  <p class="muted lead">Added to every upload. Saved in <code>data/channel.json</code> on this computer. {% if not ch.exists %}You have not saved any yet, so generic text is used.{% endif %} <a href="/docs/channel-info">Where to find these details</a></p>
+  <form class="panel" id="channel-form">
+    <div class="fields">
+      <div class="field"><label for="c-handle">Handle</label><input id="c-handle" type="text" value="{{ ch.handle }}" placeholder="@YourChannel"><p class="hint">Shown in the description. Starts with @.</p></div>
+      <div class="field"><label for="c-url">Channel address</label><input id="c-url" type="text" value="{{ ch.url }}" placeholder="https://www.youtube.com/channel/UC..."></div>
+      <div class="field"><label for="c-tags">Tags</label><input id="c-tags" type="text" value="{{ ch.tags | join(', ') }}"><p class="hint">Separate with commas. Added to every video.</p></div>
+      <div class="field"><label for="c-desc">Description</label><textarea id="c-desc" rows="9">{{ ch.description }}</textarea><p class="hint">Keep <code>{scene_facts}</code>: it becomes the numbered facts from each video.</p></div>
+    </div>
+    <h2 class="section-title">Topic taste</h2>
+    <div class="fields">
+      <div class="field"><div class="label-row"><label for="c-audience">Audience notes</label>{% if ch.audience_default %}<span class="changed">Default</span>{% endif %}<button type="button" class="link-btn" id="c-audience-reset">Use the default</button></div>
+        <textarea id="c-audience" rows="12">{{ ch.audience_notes }}</textarea><p class="hint">Who the videos are for and what works. Used when AI Eye writes topic ideas. Describe patterns, not specific subjects, or topics get copied.</p></div>
+      <div class="field"><div class="label-row"><label for="c-cats">Top categories</label>{% if ch.categories_default %}<span class="changed">Default</span>{% endif %}</div>
+        <textarea id="c-cats" rows="5">{{ ch.top_categories | join('\n') }}</textarea><p class="hint">One per line. <code>aieye run -top</code> rotates through them, one per video.</p></div>
+    </div>
+    <div class="actions"><button class="btn" type="submit">Save channel details</button><span class="note" id="channel-note"></span></div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/channel.js"></script>{% endblock %}

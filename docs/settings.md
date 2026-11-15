@@ -1,6 +1,11 @@
 # Settings
 
-Your defaults are saved in `data/settings.json`. Choose them once with `aieye setup` (or `python3 aieye-cli.py --setup`).
+Open **Settings** from the left menu, or go to `/settings`. You can also choose defaults in the terminal with `aieye setup`. Both
+read and write the same file, `data/settings.json`.
+
+## Defaults for new videos
+
+Change a value and press **Save defaults**.
 
 | Setting | Options |
 |---|---|
@@ -24,5 +29,36 @@ aieye run -1 -def -privacy private -quality low
 
 ## Advanced
 
-Models, number of scenes, caption look, zoom strength and more are constants in `aieye/config.py`. The README lists each one.
-Your channel's name, description and tags are in [`data/channel.json`](/docs/channel-info).
+The **Advanced** card on the Settings page holds the models and the look of the video. Open a group, change a value, and press
+**Save advanced settings**. A changed value shows a "Changed" label and a **Reset** link. **Reset all** puts every value back.
+The next video you make uses the new values; a video already running does not.
+
+Only the values you changed are saved, in `data/config.json`. The rest follow the built-in defaults.
+
+| Group | Setting | Range or options |
+|---|---|---|
+| Models | Script model, Voice model, Image model | Any model id your account can use. One word, no spaces. |
+| Script and pictures | Scenes per video | 3 to 7 (default 5) |
+| | Pictures per scene (most) | 1 to 3 (default 3). 1 is the cheapest. |
+| | Shortest picture, in words | 2 to 12 (default 5) |
+| | Scenes drawn at once | 1 to 6 (default 3). Lower it if you hit rate limits. |
+| | Topics added when the queue is empty | 3 to 20 (default 10) |
+| Narration | Narrator direction | Tone and pacing text sent with every line |
+| | Voices used when shuffling | At least two of the 13 voices |
+| | Reading level and tone rules | Rules every script follows. Change them if your audience is not 8 to 12. |
+| Look | Zoom strength | low, medium, high |
+| | Crossfade length | 0 to 0.6 seconds (default 0.28) |
+| | Caption highlight | plate or text |
+| | Caption colours | shuffle or fixed |
+| | Caption accent colour | A colour, used when colours are fixed |
+| | Words per caption | 2 to 8 (default 5) |
+| | Scenes rendered at once | 1 to 6 (default 3). Higher is faster but uses more memory. |
+
+!!! warning
+    Changing scenes per video or pictures per scene changes the cost of every video. The cost shown next to image quality assumes
+    the default values.
+
+If you edit `data/config.json` by hand, any value that is out of range is ignored and the default is used, so a typing mistake
+cannot stop a run.
+
+Your channel's name, description and tags are on the [Channel page](/docs/channel-info).

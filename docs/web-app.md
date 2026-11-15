@@ -9,10 +9,13 @@ Every part of the app has its own address, so you can bookmark it and use the ba
 | Page | Address | What it is for |
 |---|---|---|
 | Home | `/` | Today's upload count out of 3, a setup checklist and your recent videos |
+| Topics | `/topics` | The queue of topics: add, reorder, remove, and see what is already made. See [Topics](/docs/topics) |
+| Channel | `/channel` | Your handle, description, tags and topic taste. See [Channel details](/docs/channel-info) |
+| Settings | `/settings` | Defaults for new videos (style, quality, privacy, narrator) and the advanced models and look. See [Settings](/docs/settings) |
 | Connections | `/connections` | Save your OpenAI and OpenRouter keys, add the YouTube client file, sign in to YouTube |
 | Docs | `/docs` | This documentation |
 
-More pages arrive in later updates. This page lists only what exists today.
+Creating a video from the browser, with a live view and a review step before upload, and the video experiments arrive in later updates. This page lists only what exists today.
 
 ## Options
 

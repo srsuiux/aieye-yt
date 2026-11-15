@@ -20,8 +20,8 @@ python3 aieye-cli.py --quick                        # make 1 video
 
 Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
 
-**Web app:** `aieye web` opens the same tool in your browser (local only by default): add keys on the Connections page, read the
-docs, see today's uploads. The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
+**Web app:** `aieye web` opens the same tool in your browser (local only by default): manage topics, channel details, defaults and advanced
+settings (models, scenes, caption look), save API keys and the YouTube sign-in, and read the docs. The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
 
 **Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) ·
 [The `aieye` command](#the-aieye-command) · [Experiments](#experiments-optional-not-part-of-the-daily-pipeline) · [Usage](#usage) ·
@@ -271,7 +271,7 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 | Pictures per scene (1 = old behaviour, cheapest) / shortest allowed shot | `MAX_SHOTS`, `MIN_SHOT_WORDS` |
 | Scenes whose images generate at once (lower if you hit rate limits) | `IMAGE_WORKERS` |
 | Crossfade length between pictures | `SHOT_XFADE` |
-| Models | `GPT_MODEL`, `TTS_MODEL`, `IMAGE_MODEL` |
+| Models | Settings page > Advanced (saved in `data/config.json`); defaults in `aieye/tuning.py` |
 | Narrator direction (tone, pacing) | `TTS_STYLE` |
 | Voices used when shuffling | `VOICE_POOL` |
 | Zoom strength | `MOTION` = `"low"` · `"medium"` · `"high"` |
@@ -342,7 +342,8 @@ aieye/                      the pipeline, one module per step
     scriptlab.py              experiment  -script   research, draft, critic, revise
     film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
     menu.py                   experiment  menu   guided AI video studio
-aieye/web/                  the web app: server.py (routes + guard), connections.py, docs.py, templates/, static/
+aieye/web/                  the web app: server.py (routes + guard), data.py (settings/channel/topics), connections.py, docs.py, templates/, static/
+    tuning.py                 advanced settings: defaults, limits and validation (your changes: data/config.json)
 docs/                       documentation as Markdown (docs/nav.json = order); served at /docs by the web app
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)

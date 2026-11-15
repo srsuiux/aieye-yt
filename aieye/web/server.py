@@ -10,10 +10,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .. import envfile
-from ..config import CHANNEL_FILE, DRAFT_DB, FINAL_DB, SETTINGS_FILE
+from ..config import CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
 from ..store import load_db
-from . import connections, docs
+from . import connections, data, docs
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_PORT = 8420
@@ -21,6 +21,9 @@ LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
+    {"href": "/topics",      "label": "Topics",      "icon": "list"},
+    {"href": "/channel",     "label": "Channel",     "icon": "channel"},
+    {"href": "/settings",    "label": "Settings",    "icon": "sliders"},
     {"href": "/connections", "label": "Connections", "icon": "link"},
     {"href": "/docs",        "label": "Docs",        "icon": "book"},
 ]
@@ -78,9 +81,9 @@ def create_app(token=None, bind_host="127.0.0.1"):
              "help": "Needed for the script, voice and pictures."},
             {"done": yt["client_file"] and yt["signed_in"], "label": "Connect YouTube (optional)", "href": "/connections",
              "help": "Only needed to upload. You can render videos without it."},
-            {"done": CHANNEL_FILE.exists(), "label": "Add your channel details (optional)", "href": "/docs/channel-info",
+            {"done": CHANNEL_FILE.exists(), "label": "Add your channel details (optional)", "href": "/channel",
              "help": "Handle, description and tags used on uploads."},
-            {"done": SETTINGS_FILE.exists(), "label": "Save your default settings", "href": "/docs/settings",
+            {"done": SETTINGS_FILE.exists(), "label": "Save your default settings", "href": "/settings",
              "help": "Image style, quality, narrator and privacy."},
         ]
         return page(request, "home.html", title="Home", used=pushed_today(), limit=DAILY_LIMIT, recent=recent,
@@ -90,6 +93,18 @@ def create_app(token=None, bind_host="127.0.0.1"):
     def connections_page(request: Request):
         return page(request, "connections.html", title="Connections", keys=connections.keys_status(),
                     yt=connections.youtube_status())
+
+    @app.get("/settings", response_class=HTMLResponse)
+    def settings_page(request: Request):
+        return page(request, "settings.html", title="Settings", d=data.defaults_view(), groups=data.tuning_view())
+
+    @app.get("/channel", response_class=HTMLResponse)
+    def channel_page(request: Request):
+        return page(request, "channel.html", title="Channel", ch=data.channel_view())
+
+    @app.get("/topics", response_class=HTMLResponse)
+    def topics_page(request: Request):
+        return page(request, "topics.html", title="Topics", t=data.topics_view())
 
     @app.get("/docs", response_class=HTMLResponse)
     def docs_index(request: Request):
@@ -156,6 +171,61 @@ def create_app(token=None, bind_host="127.0.0.1"):
     def api_youtube_sign_out():
         connections.sign_out()
         return {"ok": True, "youtube": connections.youtube_status()}
+
+    # ── Settings, channel and topics API ──────────────────────────────────────────────────────────────────────
+    @app.put("/api/settings/defaults")
+    async def api_save_defaults(request: Request):
+        try:
+            data.save_defaults(await request.json())
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True, "message": "Saved. New videos use these defaults."}
+
+    @app.put("/api/settings/advanced")
+    async def api_save_advanced(request: Request):
+        body = await request.json()
+        try:
+            data.save_tuning(body.get("values", {}))
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True, "message": "Saved. The next video you make uses these."}
+
+    @app.post("/api/settings/advanced/reset")
+    async def api_reset_advanced(request: Request):
+        body = await request.json()
+        data.reset_tuning(body.get("keys") or None)
+        return {"ok": True}
+
+    @app.get("/api/channel/default-audience")
+    def api_default_audience():
+        return {"text": DEFAULT_AUDIENCE_NOTES}
+
+    @app.put("/api/channel")
+    async def api_save_channel(request: Request):
+        try:
+            data.save_channel(await request.json())
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True, "message": "Channel details saved."}
+
+    @app.post("/api/topics")
+    async def api_add_topic(request: Request):
+        body = await request.json()
+        try:
+            data.add_topic(body.get("title"), body.get("hook"), bool(body.get("force")))
+        except data.DuplicateTopic as e:
+            return JSONResponse({"ok": False, "duplicate": True, "message": str(e)}, status_code=409)
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True}
+
+    @app.post("/api/topics/{topic_id}/{action}")
+    def api_change_topic(topic_id: str, action: str):
+        try:
+            data.change_topic(topic_id, action)
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True}
 
     return app
 

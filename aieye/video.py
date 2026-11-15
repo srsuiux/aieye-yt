@@ -3,15 +3,16 @@ from pathlib import Path
 from .audio import speechify
 from .captions import CAPTION_ACCENT, CAPTION_COLOR_MODE, CAPTION_LEAD_CARD, CAPTION_PALETTE, CAPTION_TOP, align_words, caption_events, find_caption_font, group_cards, render_card
 from .config import MAX_SHOTS
+from .tuning import tune
 from .ffmpeg import FFMPEG, run_cmd
 from .ui import fail, log, ok, section, skip, spin, warn
 
 
-MOTION = "medium"                       # "low" | "medium" | "high" — how far the slow zoom travels
+MOTION = tune("MOTION")                       # "low" | "medium" | "high" — how far the slow zoom travels
 
 # ── Smooth motion: ONE slow, eased zoom per scene (in on one scene, out on the next) ─────
 MOTION_CAP = {"low": 0.06, "medium": 0.10, "high": 0.14}      # extra zoom reached over a full-length scene
-RENDER_WORKERS = 3                                              # scenes rendered at the same time
+RENDER_WORKERS = tune("RENDER_WORKERS")                                              # scenes rendered at the same time
 
 def _smootherstep(p):
     p = min(1.0, max(0.0, p))
@@ -28,7 +29,7 @@ def focus_at(t, dur, idx):
     e = _smootherstep(t / dur) - 0.5
     return 0.5 + 0.05 * e * (1 if idx % 4 < 2 else -1), 0.42 + 0.06 * e * (1 if idx % 2 == 0 else -1)
 
-SHOT_XFADE = 0.28      # seconds of crossfade between two pictures of the same scene
+SHOT_XFADE = tune("SHOT_XFADE")      # seconds of crossfade between two pictures of the same scene
 
 def shot_starts(words, shots, dur):
     """[(start_time, shot_index)]: each picture appears as its sentence begins (a touch early, like the captions).

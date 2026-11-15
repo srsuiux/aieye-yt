@@ -11,7 +11,7 @@ because there is none. Your keys, your channel details and your videos stay in t
 | | Terminal | Web app |
 |---|---|---|
 | Start | `aieye run ...` | `aieye web` |
-| Best for | Fast, repeatable runs and scripts | Setting up, watching a run, reviewing before you upload |
+| Best for | Fast, repeatable runs and scripts | Setting everything up, managing topics, changing settings |
 | Same pipeline | Yes | Yes |
 | Same settings and files | Yes | Yes |
 
