@@ -15,14 +15,17 @@ Everything personal lives in `data/` and `.env`, which are git-ignored. You can 
 | `data/ui.json` | Small interface memory, such as whether you finished the welcome tour |
 | `data/jobs/<time>/` | One folder per web run: its settings, live events, review answers and result. The 20 most recent are kept. |
 | `data/output/<time>/` | Videos being made, or finished but not uploaded |
-| `data/experiments/` | Results of the video experiments |
+| `data/experiments/` | Results of Studio and the terminal experiments |
+| `data/chat/<time>.json` | One file per Assistant chat. Delete the folder to remove all chats. |
 
 ## Code
 
 | Path | What it is |
 |---|---|
 | `aieye/` | The pipeline, one file per step |
-| `aieye/web/` | The web app: server, pages (`templates/`), styles and scripts (`static/`) |
+| `aieye/web/` | The web app: server, chat, Studio, pages (`templates/`), styles and scripts (`static/`) |
+| `aieye/assistant.py` | The Assistant's brain (it can propose, never spend or publish) |
+| `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md` | MIT license, security reporting, contributing |
 | `docs/` | This documentation, as Markdown. `docs/nav.json` sets the order. |
 | `aieye-cli.py` | Entry point for `python3 aieye-cli.py` |
 | `start-script.sh` | The `aieye` command |

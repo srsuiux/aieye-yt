@@ -21,7 +21,8 @@ Narration cost is an estimate, because the API does not report it.
   rendered, or whose upload failed, does not count.
 - **1 or 3 videos per run.** No other batch size.
 - **Confirm before spending.** The terminal shows the settings and cost, then waits a few seconds (Ctrl+C cancels). The web app shows the cost and asks you to press **Start and spend**.
-- **Experiments show a price first.** See [Video experiments](/docs/experiments).
+- **Experiments show a price first.** See [Video experiments](/docs/experiments) and [Studio](/docs/studio).
+- **The Assistant cannot spend on its own.** It shows a plan card with the cost, and only your button press starts a video or an upload. A chat reply itself costs about half a cent with the default model. See [Assistant](/docs/assistant).
 
 ## Keep the bill low
 

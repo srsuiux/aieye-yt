@@ -20,3 +20,8 @@
 | The review video does not play | The file may still be finishing. Wait a few seconds and reload the run page. |
 | "I can't create more than N videos a day" | The daily safety limit (3 by default). Try again tomorrow, or raise it under Settings, Advanced, Limits. |
 | A video in a batch failed | The others carry on. The summary lists each result. |
+| A page looks broken or a button says "no longer on this computer" after an update | Stop `aieye web` (Ctrl+C), start it again and reload the page. The page scripts update at once, but the server only changes when it restarts. |
+| The Assistant says OpenAI rejected the request | The message includes OpenAI's reason. Pick another model under Settings, Advanced, Models, Assistant model, or check your key and billing. |
+| The Assistant says your account cannot use the model | Choose a model your account can use under Settings, Advanced, Models. |
+| The Assistant plans a video but nothing happens | Plans only start when you press **Make it · spend about $X** on the card. |
+| Studio says it cannot load prices | Check your internet connection. The price list is a public request and needs no key. |

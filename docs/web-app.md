@@ -8,17 +8,19 @@ Every part of the app has its own address, so you can bookmark it and use the ba
 
 | Page | Address | What it is for |
 |---|---|---|
-| Home | `/` | Today's upload count out of 3, a setup checklist and your recent videos |
+| Home | `/` | Videos pushed today out of your daily limit, a setup checklist and your recent videos |
+| Assistant (beta) | `/assistant` | Chat with Iris to plan, make and upload videos. See [Assistant](/docs/assistant) |
 | Create | `/create` | Make 1 or 3 videos: topic, languages, look, cost estimate, confirm. See [Create a video](/docs/create) |
 | Run | `/runs/<id>` | Watch a run live, review the finished video, cancel |
 | Library | `/library` | Videos not uploaded yet (preview, edit, upload, delete), uploaded videos, recent runs. See [Library](/docs/library) |
+| Studio (beta) | `/studio` | AI video experiments: pictures, clips, scripts and whole films. See [Studio](/docs/studio) |
 | Topics | `/topics` | The queue of topics: add, reorder, remove, and see what is already made. See [Topics](/docs/topics) |
 | Channel | `/channel` | Your handle, description, tags and topic taste. See [Channel details](/docs/channel-info) |
 | Settings | `/settings` | Defaults for new videos (style, quality, privacy, narrator) and the advanced models and look. See [Settings](/docs/settings) |
 | Connections | `/connections` | Save your OpenAI and OpenRouter keys, add the YouTube client file, sign in to YouTube |
 | Docs | `/docs` | This documentation |
 
-The video experiments (Studio) arrive in a later update. This page lists only what exists today.
+Addresses are shown without your handle. See [Addresses](#addresses) for the full form.
 
 ## Addresses
 
@@ -30,7 +32,7 @@ right one, so bookmarks keep working.
 ## Your first visit and the tour
 
 On a brand-new install (no OpenAI key, no saved settings, nothing made yet) the Home page opens with a **Welcome** card and a
-short tour. The tour is nine steps: what AI Eye does, then Connections, Settings, Channel, Topics, Create, Library and Docs, one at
+short tour. The tour is eleven steps: what AI Eye does, then Connections, Settings, Channel, Topics, Assistant, Create, Library, Studio and Docs, one at
 a time, with the page's menu item highlighted. A last step points you to adding your OpenAI key.
 
 | Key or button | What it does |
