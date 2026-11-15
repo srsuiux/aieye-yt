@@ -55,7 +55,7 @@
   $("#del-word").addEventListener("input", function () { $("#del-go").disabled = this.value.trim().toLowerCase() !== "delete"; });
   $("#del-go").addEventListener("click", function () {
     var btn = this; btn.disabled = true;
-    var body = pending.all ? { all: true } : { ids: pending.ids };
+    var body = pending.all ? { all: true } : { ids: pending.ids, id: pending.ids.length === 1 ? pending.ids[0] : undefined };
     aieye.api("POST", "/api/library/delete", body).then(function (d) {
       if (!d.ok) { $("#del-note").textContent = d.message || "Could not delete."; btn.disabled = false; return; }
       dlg.close(); aieye.toast("Deleted " + d.deleted + " video" + (d.deleted === 1 ? "" : "s") + ", freed " + d.freed_mb + " MB");
