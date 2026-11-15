@@ -55,8 +55,12 @@ def print_upload_metadata(meta):
     print(c("─"*60, "cyan"))
     print()
 
-def run_one(client):
-    """Build (and upload) one video. Never raises: returns a result dict so a batch can carry on."""
+def run_one(client, review=None):
+    """Build (and upload) one video. Never raises: returns a result dict so a batch can carry on.
+
+    review: optional callback(info) used by the web app to pause before each upload. info has "lang", "video_path",
+    "meta" (title, description, tags, privacy) and "title". It returns {"action": "upload", "meta": {...edited...}}
+    or {"action": "skip"}. Without it (the terminal) videos upload straight away, as before."""
     costs.reset()
     t0  = time.time()
     res = {"ok": False, "title": None, "topic": None, "url": None, "path": None,
@@ -108,7 +112,18 @@ def run_one(client):
             # 4. Upload (a failed upload keeps the rendered video and does not stop the others)
             video_id = None
             try:
-                video_id = upload_to_youtube(video_path, meta)
+                if review and CFG.get("upload_privacy") != "none":
+                    decision = review({"lang": code, "video_path": str(video_path), "title": meta["title"],
+                                       "meta": {**meta, "tags": CHANNEL["tags"], "privacy": CFG["upload_privacy"]}})
+                    if (decision or {}).get("action") == "upload":
+                        meta = {**meta, **decision.get("meta", {})}
+                        with open(lang_dir / "youtube_metadata.json", "w") as f:
+                            json.dump(meta, f, indent=2, ensure_ascii=False)
+                        video_id = upload_to_youtube(video_path, meta)
+                    else:
+                        log(f"{tag}Upload skipped after review — video kept locally", "yellow")
+                else:
+                    video_id = upload_to_youtube(video_path, meta)
             except Exception as e:
                 warn(f"{tag}Upload failed: {str(e)[:200]}")
                 res["error"] = f"upload failed ({code}): {str(e)[:100]}"

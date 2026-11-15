@@ -17,11 +17,44 @@ C = {
 
 def c(text, col): return f"{C.get(col,'')}{text}{C['reset']}"
 
+# EVENTS: everything the pipeline reports is also sent to listeners as a plain dict, so a UI (the web app) can show
+# it live. With no listener registered nothing changes: the terminal output is exactly as before.
+
+_listeners = []
+
+def add_listener(fn):
+    """fn(event: dict) is called for every log line / section / spinner / cost / progress update."""
+    _listeners.append(fn)
+
+def remove_listener(fn):
+    if fn in _listeners:
+        _listeners.remove(fn)
+
+def emit(kind, **data):
+    """kind: log | section | spin | cost | progress | review. Listener errors never break the pipeline."""
+    if not _listeners:
+        return
+    ev = {"kind": kind, "time": datetime.now().isoformat(timespec="seconds"), **data}
+    for fn in list(_listeners):
+        try:
+            fn(ev)
+        except Exception:
+            pass
+
+class AieyeError(SystemExit):
+    """A user-facing, expected failure (missing key, bad setting, no credits...). It is a SystemExit, so the
+    terminal behaves exactly as before (message printed, exit code 1); the web app catches it and shows `.message`."""
+    def __init__(self, message):
+        super().__init__(1)
+        self.message = message
+
 def log(msg, color="reset", indent=0):
     ts = datetime.now().strftime("%H:%M:%S")
     print(f"{c(f'[{ts}]','dim')} {'  '*indent}{c(msg, color)}")
+    emit("log", message=msg, color=color, indent=indent)
 
 def section(title):
+    emit("section", title=title)
     print()
     print(c("─"*60, "cyan"))
     print(c(f"  {title}", "bold"))
@@ -32,7 +65,7 @@ def warn(msg): log(f"⚠️   {msg}", "yellow")
 def skip(msg): log(f"⏭   {msg} (cached)", "dim")
 def fail(msg):
     log(f"❌  {msg}", "red")
-    sys.exit(1)
+    raise AieyeError(msg)
 
 # SPINNER — shows while any blocking call runs
 
@@ -54,12 +87,14 @@ class Spinner:
         print(f"\r{' '*60}\r", end="", flush=True)
 
     def __enter__(self):
+        emit("spin", label=self.label, state="start")
         self._thread.start()
         return self
 
     def __exit__(self, *_):
         self._stop.set()
         self._thread.join()
+        emit("spin", label=self.label, state="stop")
 
 
 def spin(label):

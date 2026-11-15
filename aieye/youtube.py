@@ -1,6 +1,6 @@
 import time, pickle
 from .config import CLIENT_SECRETS, YOUTUBE_TOKEN, CFG, CHANNEL
-from .ui import c, fail, log, ok, section, skip, spin, warn
+from .ui import c, emit, fail, log, ok, section, skip, spin, warn
 
 # STEP 6 — YOUTUBE UPLOAD
 
@@ -51,9 +51,11 @@ def get_youtube_creds(secrets, token, force_reauth=False):
     return creds
 
 def upload_to_youtube(video_path, meta):
+    """meta: title, description, lang; optional tags and privacy (set by a review step) override the channel/saved ones."""
     section("STEP 6  —  YouTube Upload")
+    privacy = meta.get("privacy") or CFG["upload_privacy"]
 
-    if CFG["upload_privacy"] == "none":
+    if privacy == "none":
         skip("Upload skipped — video saved locally")
         return None
 
@@ -78,19 +80,19 @@ def upload_to_youtube(video_path, meta):
         "snippet": {
             "title":           meta["title"][:100],
             "description":     meta["description"],
-            "tags":            CHANNEL["tags"],
+            "tags":            meta.get("tags") or CHANNEL["tags"],
             "categoryId":      "28",
             "defaultLanguage": meta.get("lang", "en"),
             "defaultAudioLanguage": meta.get("lang", "en"),
         },
         "status": {
-            "privacyStatus":           CFG["upload_privacy"],
+            "privacyStatus":           privacy,
             "selfDeclaredMadeForKids": False,
         },
     }
 
     log(f"Uploading: {meta['title'][:70]}", indent=1)
-    log(f"Privacy:   {CFG['upload_privacy'].upper()}", "yellow", indent=1)
+    log(f"Privacy:   {privacy.upper()}", "yellow", indent=1)
 
     from googleapiclient.errors import HttpError
     from google.auth.exceptions import RefreshError
@@ -120,6 +122,7 @@ def upload_to_youtube(video_path, meta):
         if status:
             pct = int(status.progress() * 100)
             print(f"\r  {c('↑','cyan')} Uploading... {c(str(pct)+'%','yellow')}   ", end="", flush=True)
+            emit("progress", label="Uploading", percent=pct)
     print()
 
     video_id = response.get("id","unknown") if isinstance(response, dict) else "unknown"
