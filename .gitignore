@@ -49,3 +49,6 @@ logs/
 .DS_Store
 .idea/
 .vscode/
+
+# ── Channel analytics notes (your own channel stats; not part of the framework) ──
+yt-analysis/

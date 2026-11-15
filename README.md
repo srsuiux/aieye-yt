@@ -301,7 +301,6 @@ aieye/                      the pipeline, one module per step
     menu.py                   experiment  menu   guided AI video studio
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)
-yt-analysis/                channel stats notes (data.txt: views per Short) used to judge what performs
 requirements.txt            dependencies
 .env                        OPENAI_API_KEY, optional OPENROUTER_API_KEY                (you create this; see .env.example)
 assets/voice_samples/       optional narrator samples      (git-ignored)
