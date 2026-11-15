@@ -1,16 +1,17 @@
 """Settings, model names, prices and file locations."""
+import os
 from pathlib import Path
 
 try:
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    load_dotenv(os.environ.get("AIEYE_ENV_FILE") or Path(__file__).resolve().parent.parent / ".env")
 except ImportError:
     pass
 
 from .tuning import tune
 
 ROOT       = Path(__file__).resolve().parent.parent
-DATA_DIR   = ROOT / "data"                     # everything generated or personal lives here (git-ignored)
+DATA_DIR   = Path(os.environ.get("AIEYE_DATA_DIR") or ROOT / "data")   # everything generated or personal lives here (git-ignored); AIEYE_DATA_DIR moves it
 OUTPUT_DIR = DATA_DIR / "output"               # one folder per video; deleted once the video is posted
 DB_DIR     = DATA_DIR / "db"
 DRAFT_DB   = DB_DIR / "draft.json"             # topic queue

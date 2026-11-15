@@ -2,6 +2,13 @@
 {% block content %}
 <div class="page">
   <h1>Home</h1>
+  {% if not checklist[0].done %}
+  <section class="panel welcome">
+    <h2>Welcome to AI Eye</h2>
+    <p class="muted">It turns a topic into a finished YouTube Short: script, narration, pictures and captions. Start by adding your OpenAI key, which pays for the script, voice and pictures. YouTube is optional and can wait.</p>
+    <p><a class="btn" href="/connections">Add your OpenAI key</a> <button class="btn ghost" type="button" data-start-tour>Take the tour</button> <a class="btn ghost" href="/docs/install">Read the setup guide</a></p>
+  </section>
+  {% endif %}
 
   <section class="panel usage">
     <div class="usage-head">

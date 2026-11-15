@@ -43,7 +43,8 @@ def create_app(token=None, bind_host="127.0.0.1"):
     allowed_hosts = set(LOCAL_HOSTS) | ({bind_host} if bind_host not in ("0.0.0.0", "::") else set())
 
     def page(request, name, status=200, **ctx):
-        ctx.update(nav=NAV, path=request.url.path, remote=bool(token), request=request)
+        ctx.update(nav=NAV, path=request.url.path, remote=bool(token), request=request,
+                   auto_tour=(request.url.path == "/" and data.is_fresh_install()))
         return templates.TemplateResponse(request, name, ctx, status_code=status)
 
     # ── Guard: only this machine's own pages may talk to the app ───────────────────────────────────────────────
@@ -312,6 +313,14 @@ def create_app(token=None, bind_host="127.0.0.1"):
         return {"ok": True, "youtube": connections.youtube_status()}
 
     # ── Settings, channel and topics API ──────────────────────────────────────────────────────────────────────
+    @app.put("/api/ui/tour")
+    async def api_tour(request: Request):
+        try:
+            data.set_tour((await request.json()).get("state"))
+        except ValueError as e:
+            return bad(str(e))
+        return {"ok": True}
+
     @app.put("/api/settings/defaults")
     async def api_save_defaults(request: Request):
         try:

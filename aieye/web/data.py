@@ -3,7 +3,7 @@ import json, time
 from datetime import datetime
 
 from .. import tuning
-from ..config import (CHANNEL, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DEFAULT_TOP_CATEGORIES, DRAFT_DB, FINAL_DB,
+from ..config import (DATA_DIR, CHANNEL, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DEFAULT_TOP_CATEGORIES, DRAFT_DB, FINAL_DB,
                       IMAGE_COST, SETTINGS_FILE)
 from ..dedupe import history_texts, lexical_match
 from ..limits import DAILY_LIMIT
@@ -19,6 +19,29 @@ SETTING_INFO = {
     "tts_voice":      ("Narrator voice", "The voice that reads the script."),
     "batch_voice":    ("Voices in a batch of 3", "shuffle: a different narrator on each video. same: the narrator above on all three."),
 }
+
+# ── Small UI memory (data/ui.json): has the welcome tour been finished or skipped? ──────────────────────────────
+UI_FILE = DATA_DIR / "ui.json"
+
+def ui_state():
+    try:
+        d = json.loads(UI_FILE.read_text())
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+def set_tour(state):
+    if state not in ("done", "skipped"):
+        raise ValueError("Unknown tour state")
+    d = ui_state(); d["tour"] = state
+    UI_FILE.parent.mkdir(parents=True, exist_ok=True)
+    UI_FILE.write_text(json.dumps(d))
+
+def is_fresh_install():
+    """A brand-new install: no key, no saved settings, nothing made yet, tour never answered."""
+    from .. import envfile
+    return (not envfile.key_status("OPENAI_API_KEY")["set"] and not SETTINGS_FILE.exists()
+            and not load_db(FINAL_DB) and "tour" not in ui_state())
 
 # ── Defaults (data/settings.json) ──────────────────────────────────────────────────────────────────────────────
 def defaults_view():

@@ -28,6 +28,8 @@ A browser tab opens at `http://localhost:8420`. If it does not, open that addres
     To type just `aieye` instead of `python3 aieye-cli.py`, run this once from the AI Eye folder:
     `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`. Then `aieye web` works from anywhere.
 
+On a new install, a short welcome tour starts. Take it, or press **Skip tour**; you can reopen it with the **?** button.
+
 ## 4. Add your key
 
 Open **Connections**, paste your OpenAI key, press **Save key**, then **Test**. See [Get an OpenAI key](/docs/get-openai-key) if you

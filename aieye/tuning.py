@@ -4,10 +4,10 @@ Defaults live here. Your changes are saved in data/config.json (git-ignored) and
 so a framework update can still improve the defaults you did not touch. Modules read a value with `tune("NAME")`.
 Values are read when the program starts, so a change applies to the NEXT video, not to one already running.
 """
-import json, re
+import json, os, re
 from pathlib import Path
 
-TUNE_FILE = Path(__file__).resolve().parent.parent / "data" / "config.json"
+TUNE_FILE = Path(os.environ.get("AIEYE_DATA_DIR") or Path(__file__).resolve().parent.parent / "data") / "config.json"
 
 _VOICES = ["marin", "cedar", "nova", "coral", "sage", "ash", "ballad", "verse", "alloy", "echo", "fable", "onyx", "shimmer"]
 

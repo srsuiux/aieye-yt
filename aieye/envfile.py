@@ -4,9 +4,10 @@ Keys are only ever written to .env on this machine. Nothing here returns a full 
 last 4 characters, so a page can show "sk-…abcd" without exposing the secret.
 """
 import os, re
+from pathlib import Path
 from .config import ROOT
 
-ENV_FILE = ROOT / ".env"
+ENV_FILE = Path(os.environ.get("AIEYE_ENV_FILE") or ROOT / ".env")
 KNOWN_KEYS = {
     "OPENAI_API_KEY":     "OpenAI (script, voice, images)",
     "OPENROUTER_API_KEY": "OpenRouter (AI video experiments, optional)",

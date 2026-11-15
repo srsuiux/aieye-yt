@@ -12,6 +12,7 @@ Everything personal lives in `data/` and `.env`, which are git-ignored. You can 
 | `data/credentials/youtube_token.pickle` | Your YouTube sign-in |
 | `data/db/draft.json` | The topic queue |
 | `data/db/final.json` | One short line per finished video |
+| `data/ui.json` | Small interface memory, such as whether you finished the welcome tour |
 | `data/jobs/<time>/` | One folder per web run: its settings, live events, review answers and result. The 20 most recent are kept. |
 | `data/output/<time>/` | Videos being made, or finished but not uploaded |
 | `data/experiments/` | Results of the video experiments |
@@ -26,6 +27,9 @@ Everything personal lives in `data/` and `.env`, which are git-ignored. You can 
 | `aieye-cli.py` | Entry point for `python3 aieye-cli.py` |
 | `start-script.sh` | The `aieye` command |
 | `channel.example.json` | A template for `data/channel.json` |
+
+To keep your data somewhere else (for example to try a clean install without touching yours), set `AIEYE_DATA_DIR` to a folder
+and `AIEYE_ENV_FILE` to a `.env` path before starting AI Eye.
 
 !!! note
     Never share or commit `.env` or `data/credentials/`. If a key is exposed, delete it in the provider's dashboard and make a new one.

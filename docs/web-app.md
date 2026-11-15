@@ -20,6 +20,24 @@ Every part of the app has its own address, so you can bookmark it and use the ba
 
 The video experiments (Studio) arrive in a later update. This page lists only what exists today.
 
+## Your first visit and the tour
+
+On a brand-new install (no OpenAI key, no saved settings, nothing made yet) the Home page opens with a **Welcome** card and a
+short tour. The tour is nine steps: what AI Eye does, then Connections, Settings, Channel, Topics, Create, Library and Docs, one at
+a time, with the page's menu item highlighted. A last step points you to adding your OpenAI key.
+
+| Key or button | What it does |
+|---|---|
+| **Next** or the right arrow | Next step |
+| **Back** or the left arrow | Previous step |
+| **Skip tour** or Esc | Close the tour. It will not open on its own again. |
+| **?** in the top bar | Open the tour again at any time |
+
+Finishing or skipping is remembered in `data/ui.json`. People who already have a key or saved settings never see it open by itself.
+
+An empty install is safe to explore: every page opens, and pages that have nothing to show say what to do next. Create stays
+disabled until you add your OpenAI key.
+
 ## Options
 
 ```bash
