@@ -37,7 +37,9 @@
     <a href="{{ base }}{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span></a>
     {% endfor %}
   </nav>
-  <main id="main">{% block content %}{% endblock %}</main>
+  <main id="main">{% block content %}{% endblock %}
+    <footer class="foot"><a href="{{ base }}/docs/privacy">Privacy</a><a href="{{ base }}/docs/terms">Terms</a><a href="{{ base }}/docs/copyright">Copyright</a><a href="{{ base }}/docs/license">MIT License</a><span>Not affiliated with YouTube, Google or OpenAI.</span></footer>
+  </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/static/app.js"></script>

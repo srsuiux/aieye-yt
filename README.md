@@ -356,3 +356,13 @@ assets/channel/             channel branding assets        (git-ignored)
 data/                       everything generated/personal  (git-ignored)
     settings.json, db/, output/, credentials/, experiments/
 ```
+
+---
+
+## License and legal
+
+AI Eye is released under the [MIT License](LICENSE): free to use, change and share, with no warranty. It runs on your own computer
+with your own keys; nothing is sent to the authors. Read [Privacy](docs/privacy.md), [Terms of use](docs/terms.md),
+[Copyright and content](docs/copyright.md) and [Third-party software](docs/third-party.md) (also in the app under Docs), and
+[SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md). You are responsible for the videos you publish and for following
+the terms of OpenAI, Google and YouTube. AI Eye is not affiliated with or endorsed by them.

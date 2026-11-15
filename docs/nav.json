@@ -94,5 +94,30 @@
         "title": "Troubleshooting"
       }
     ]
+  },
+  {
+    "section": "Legal",
+    "pages": [
+      {
+        "slug": "privacy",
+        "title": "Privacy"
+      },
+      {
+        "slug": "terms",
+        "title": "Terms of use"
+      },
+      {
+        "slug": "copyright",
+        "title": "Copyright and content"
+      },
+      {
+        "slug": "license",
+        "title": "MIT License"
+      },
+      {
+        "slug": "third-party",
+        "title": "Third-party software"
+      }
+    ]
   }
 ]
