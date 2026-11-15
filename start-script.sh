@@ -40,7 +40,7 @@ cat <<'EOF'
                         Quality defaults to high (-quality low|medium|high to change)
     -vid [still.png] "motion"
                         EXPERIMENT: turn a still into a clip with an image-to-video model via OpenRouter.
-                        Default model Grok Imagine Video 1.5 Lite, 720p, 5 s, 9:16. Uses the newest -img still if
+                        Default model Veo 3.1 Lite, 720p, 5 s, 9:16. Uses the newest -img still if
                         no file is given. Saves the clip, its last frame (start of the next clip) and the cost in
                         data/experiments/videos/. -model <id>  -dur <1-10>  -res 480p|720p|1080p
                         Needs OPENROUTER_API_KEY in .env. Shows the price first; -y skips the 3 s cancel window.
@@ -54,8 +54,9 @@ cat <<'EOF'
                         captions, loudness-normalised 9:16 output. Saved in data/experiments/film/<run>/.
                         -model <id>  -res 480p|720p|1080p  -ambient (keep the clips' own sound, quietly)
                         -resume <folder> (finish a run, generating only missing clips)
-                        -noqa (skip the frame check; by default every clip is checked by a vision model for spoilers,
-                        drawn graphics and wrong content, and only failing clips are regenerated, up to 2 times)  -y (skip the cancel window)
+                        -qa (check every clip with a vision model for spoilers, drawn graphics and wrong
+                        content; failing clips are regenerated up to 2 times, so up to 3x clip cost. Off by default)
+                        -y (skip the cancel window)
     -privacy <p>        public | private | unlisted | none   (none = render only, no upload)
     -quality <q>        low | medium | high                  (image quality, this run only)
     -y                  skip the start countdown

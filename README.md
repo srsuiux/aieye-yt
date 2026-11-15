@@ -43,6 +43,7 @@ A ~45–55 second vertical video (1080×1920, 30 fps, H.264 + AAC) with:
 - **`ffprobe`** on your PATH (comes with a normal ffmpeg install, e.g. `brew install ffmpeg`).
   The `ffmpeg` used for rendering is the newer 7.x build bundled with `imageio-ffmpeg`; the pipeline uses it automatically and falls back to the system `ffmpeg`.
 - *(Optional, for uploading)* a Google Cloud OAuth client — see [YouTube setup](#youtube-setup)
+- *(Optional, experiments only)* an OpenRouter API key for `-vid`, `-film` and `aieye menu`
 - *(Recommended)* `torch` + `torchaudio` for accurate caption timing. Without them captions still work using a less accurate estimate.
 
 ## Setup
@@ -53,6 +54,8 @@ pip install -r requirements.txt
 
 # 2. Add your OpenAI key
 echo "OPENAI_API_KEY=sk-..." > .env
+
+# (optional, experiments only) echo "OPENROUTER_API_KEY=sk-or-..." >> .env
 
 # 3. Choose your default settings (one time)
 python3 ysa-cli.py --setup
@@ -78,17 +81,12 @@ Only needed if you want the pipeline to upload. Without it, choose **Don't uploa
 aieye run -trending -1 -def   # 1 video, topic from what is trending on the web, saved defaults, random narrator
 aieye run -top -3 -def        # 3 videos from the top categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
 aieye run -3 -def             # 3 videos from the queue, saved defaults, shuffled narrators
-aieye run -img 1 "a red fox in fresh snow"   # EXPERIMENT: 1 high-definition, centre-focus 9:16 still (1-4 allowed)
-                                              # saved in data/experiments/images/ (+ raw original and a .json with prompt and cost);
-                                              # no video, no upload, not counted in the daily limit; quality defaults to high
-aieye run -vid "slow push-in, the fox turns its head"   # EXPERIMENT: turn the newest -img still into a 5 s clip (OpenRouter)
-                                              # default model Grok Imagine Video 1.5 Lite, 720p, 9:16; -model ID  -dur S  -res R  -y
-                                              # saves the clip, its LAST FRAME (start of the next clip) and the real cost in data/experiments/videos/
-                                              # needs OPENROUTER_API_KEY in .env; `aieye models` lists models and live prices
 aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
 aieye setup                   # choose and save defaults
 aieye trends                  # just list what is trending (free)
+aieye models                  # list image-to-video models and live prices (free; experiments)
+aieye menu                    # AI video studio (experiments; spends OpenRouter credit)
 aieye                         # interactive menu
 ```
 
@@ -103,6 +101,33 @@ in English; each extra language gets the narration re-written as a native speake
 translation), its own voice track and captions, and is uploaded as its own Short with the right language tag.
 Hindi captions are shaped with macOS CoreText (Pillow can't shape Devanagari without raqm). Languages are listed in
 `aieye/languages.py`. Costs ~$0.02 extra per added language (no extra images).
+
+### Experiments (optional, not part of the daily pipeline)
+
+Side tools for trying AI video. They never touch the topic queue, the 3-a-day limit or YouTube, and nothing is uploaded.
+All output goes to `data/experiments/` (git-ignored). The video modes need `OPENROUTER_API_KEY` in `.env`
+(key from [openrouter.ai/keys](https://openrouter.ai/keys)); `-img` and `-script` only need your OpenAI key.
+**None of the video models are free**: each command shows a price first, and `-y` skips that pause, so use it with care.
+
+| Command | What it does | Output |
+|---|---|---|
+| `aieye run -img [N] "prompt"` | 1-4 high-definition, centre-focus 9:16 stills (quality defaults to `high`; `-quality low\|medium\|high`) | `data/experiments/images/` (+ raw original and a `.json` with prompt and cost) |
+| `aieye run -vid [still.png] "motion"` | Turns a still (default: the newest `-img` still) into a short clip | `data/experiments/videos/`: clip, its **last frame** (start of the next clip) and the real cost |
+| `aieye run -script "topic" [-notes file]` | Script only: a reasoning model drafts it, a stronger one judges it against a strict rubric, revised up to 2 rounds. `-notes` supplies verified facts | `data/experiments/film/<run>/` (`script.json`, `script.md`, `script_report.json`) |
+| `aieye run -film "topic"` | The full pipeline with text-to-video: director's shot list, voice, one clip per scene, word-timed captions, loudness-normalised 1080x1920 output | `data/experiments/film/<run>/` |
+| `aieye menu` | Guided studio: asks for a topic and a model, shows an estimated price, asks for `y`, then runs script, film and merge | same as `-film` |
+
+| Option | Applies to | Meaning |
+|---|---|---|
+| `-model ID` | `-vid`, `-film` | Shortcuts for `-film`: `grok`, `veo`, `veo-fast`, `seedance`, `kling`; or any OpenRouter model id. Default `google/veo-3.1-lite` (best anatomy and action per dollar in our test; Grok Lite is cheaper but drew wrong animals). Full list with live prices: `aieye models` |
+| `-res 480p\|720p\|1080p` | `-vid`, `-film` | Clip resolution (default `720p`) |
+| `-dur S` | `-vid` | Clip length in seconds, 1-10 (default 5) |
+| `-ambient` | `-film` | Keep the clips' own sound, quietly |
+| `-qa` | `-film` | Frame checks by a vision model (spoilers, drawn graphics, wrong content); failing clips are regenerated up to 2 times, so it can cost up to 3x the clip price. Off by default |
+| `-resume DIR` | `-film`, `-script` | `-film`: finish a saved run, generating only missing clips. `-script`: re-judge and improve a script (the old one is kept as `script_prev.json`) |
+| `-y` | `-vid`, `-film` | Skip the 3-second cancel window |
+
+Typical flow: `-script "topic"` (cheap, review the script) then `-film -resume <run>` (spends on video).
 
 ## Usage
 
@@ -225,6 +250,7 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 | `insufficient_quota` / "no credits remaining" | Add credits at platform.openai.com → Billing. Newly added credits can take a few minutes; also check the key belongs to the same organisation/project. A batch stops itself when this happens. |
 | "Rate limit on scene … waiting Ns" | Normal: the image API limits how fast pictures can be requested. The pipeline waits and retries by itself. If it keeps happening, lower `IMAGE_WORKERS` to 1–2 or `MAX_SHOTS` to 2. |
 | `OPENAI_API_KEY not set` | Put it in `.env` in the project root (next to `ysa-cli.py`). |
+| `OPENROUTER_API_KEY is not set` / OpenRouter `402` | Experiments only. Add the key to `.env`, or add credits at openrouter.ai/credits. |
 | `No saved defaults yet` | Run `python3 ysa-cli.py --setup` once. |
 | `ffprobe: command not found` | Install ffmpeg (`brew install ffmpeg`) so `ffprobe` is on your PATH. |
 | "Forced alignment unavailable … using estimated caption timing" | `torch`/`torchaudio` missing or the model couldn't download. Run `pip install torch torchaudio` and check your connection. Captions still work, just less precisely timed. |
@@ -245,7 +271,7 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 
 ## Security
 
-Never share or commit: `.env` (OpenAI key), `data/credentials/` (YouTube access).
+Never share or commit: `.env` (OpenAI and OpenRouter keys), `data/credentials/` (YouTube access).
 All three, plus outputs and settings, are listed in `.gitignore`. If a key is ever exposed (in a log, screenshot or chat), rotate it in the provider's dashboard.
 
 ## Project layout
@@ -268,9 +294,16 @@ aieye/                      the pipeline, one module per step
     ffmpeg.py                 ffmpeg lookup / runner
     youtube.py                step 5  upload
     pipeline.py               run_one / main, cleanup after posting
+    imgexp.py                 experiment  -img   stills
+    videxp.py                 experiment  -vid   image-to-video via OpenRouter, model list and prices
+    scriptlab.py              experiment  -script   research, draft, critic, revise
+    film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
+    menu.py                   experiment  menu   guided AI video studio
 launchers/                  double-click launchers (macOS)
+start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)
+yt-analysis/                channel stats notes (data.txt: views per Short) used to judge what performs
 requirements.txt            dependencies
-.env                        OPENAI_API_KEY                 (you create this; see .env.example)
+.env                        OPENAI_API_KEY, optional OPENROUTER_API_KEY                (you create this; see .env.example)
 assets/voice_samples/       optional narrator samples      (git-ignored)
 assets/channel/             channel branding assets        (git-ignored)
 data/                       everything generated/personal  (git-ignored)
