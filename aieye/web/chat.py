@@ -34,7 +34,7 @@ def friendly(e):
         return "Your OpenAI account cannot use the assistant model. Pick another under Settings > Advanced > Models."
     if "connect" in s.lower() or "timeout" in s.lower():
         return "I could not reach OpenAI. Check your internet connection and try again."
-    return "Something went wrong while I was working: " + s[:200]
+    return "Something went wrong while I was working: " + s[:1200]       # long enough to include the provider's whole explanation
 
 
 class Conversation:
