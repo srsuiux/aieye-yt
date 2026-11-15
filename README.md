@@ -86,6 +86,8 @@ The first video downloads the caption-timing model (~1.2 GB, once) into your tor
 ### Your channel
 
 Video descriptions and tags come from `data/channel.json`, which is git-ignored. Without it, generic defaults are used.
+The same file can also hold `audience_notes` (who the videos are for and what has worked for you) and `top_categories`
+(for `-top`), so your own analytics never need to go in the code.
 
 ```bash
 cp channel.example.json data/channel.json    # then edit handle, url, tags and description
@@ -274,9 +276,9 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 | Caption size of a card | `CAPTION_MAX_WORDS`, `CAPTION_MAX_CHARS` |
 | How early captions appear | `CAPTION_LEAD_CARD`, `CAPTION_LEAD_WORD` |
 | Scenes rendered at once | `RENDER_WORKERS` |
-| Audience and topic taste (who the videos are for, what to prefer or avoid) | `AUDIENCE_NOTES` |
+| Audience and topic taste (who the videos are for, what to prefer or avoid) | `"audience_notes"` in `data/channel.json` (default: `AUDIENCE_NOTES` in `config.py`) |
 | Reading level and safety rules for scripts | `KID_RULES` |
-| Categories that `-top` rotates through | `TOP_CATEGORIES` |
+| Categories that `-top` rotates through | `"top_categories"` in `data/channel.json` (default: `TOP_CATEGORIES`) |
 | Daily upload cap / allowed batch sizes | `DAILY_LIMIT`, `ALLOWED_COUNTS` in `aieye/limits.py` |
 | Script style rules | the prompts inside `generate_script()` |
 

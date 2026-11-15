@@ -1,6 +1,15 @@
 {
   "handle": "@YourChannel",
   "url": "https://www.youtube.com/channel/YOUR_CHANNEL_ID",
-  "tags": ["Shorts", "Facts", "Science", "Learning"],
-  "description": "Your channel tagline.\n\nFollow @YourChannel for new Shorts.\n{scene_facts}\n\n#Shorts #Facts #Science"
+  "tags": [
+    "Shorts",
+    "Facts",
+    "Science",
+    "Learning"
+  ],
+  "description": "Your channel tagline.\n\nFollow @YourChannel for new Shorts.\n{scene_facts}\n\n#Shorts #Facts #Science",
+  "audience_notes": "(optional) Replace the default audience and topic-taste text, e.g. what has worked on your channel.",
+  "top_categories": [
+    "(optional) categories that `aieye run -top` rotates through"
+  ]
 }

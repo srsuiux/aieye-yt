@@ -1,8 +1,7 @@
 """Strict duplicate-subject gate.
 
-The old check only rejected an *identical title*, so "The Fish That Climbs Waterfalls" went out after
-"The Fish That Climbs Waterfalls With Its Mouth" (1.1K views -> 61), and the same happened with galaxies,
-axolotls, the Antikythera computer, Roman concrete... Every repeat did far worse than the original.
+The old check only rejected an *identical title*, so near-duplicates ("The Fish That Climbs Waterfalls" after
+"The Fish That Climbs Waterfalls With Its Mouth") slipped through. Repeats of a subject tend to do far worse than the original.
 
 Two layers, both must pass:
   1. lexical  - free, instant: two titles that share 2+ meaningful word stems (or are >=40% alike) are the same topic

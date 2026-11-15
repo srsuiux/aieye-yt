@@ -25,8 +25,7 @@ EXPECTED_SHOTS = 2.2    # average pictures per scene, used for the cost estimate
 EDIT_REF_COST  = 0.014  # extra cost of a reference-image edit vs a fresh picture (the reference is billed as input)
 N_TOPICS   = 10
 
-# Top-performing categories (from the channel analytics). `aieye run -top` rotates through these, one per video.
-# Food/geography lists were tested and flopped (durian 16 views, chocolate 40, pancakes 2), so they are NOT here.
+# Categories `aieye run -top` rotates through, one per video. Override with "top_categories" in data/channel.json.
 TOP_CATEGORIES = [
     "bizarre animals and animal adaptations (one striking animal, shown close up)",
     "space and astronomy at cosmic scale (planets, galaxies, black holes, nebulae)",
@@ -83,27 +82,27 @@ CFG = {
 
 
 
-# What works for THIS channel (YouTube Studio, Oct 2026) as PATTERNS, never as subjects to copy: naming the winners made
-# the topic model re-make them (fish/lizard/galaxy repeats got 5-60x fewer views than the originals). Edit the text,
-# not the code, when the analytics change.
+# Who the videos are for and what topics to prefer or avoid. Used in every topic prompt. Override the whole text with
+# "audience_notes" in data/channel.json (e.g. paste in what has worked on YOUR channel); the default is generic.
 AUDIENCE_NOTES = """AUDIENCE: curious kids aged 8 to 12 (and the grown-ups who watch with them). Every topic must make sense to
 a fourth grader with no background. Family-safe, always.
 
-What has worked on this channel (patterns only; never copy a subject that was already made):
+What tends to work (patterns only; never copy a subject that was already made):
 - ONE striking thing a kid can picture in one second: a single animal, object or place, shown big and close.
-- A question whose obvious answer feels wrong ("Would X notice if Y disappeared?", "Can N cuts make M pieces?").
+- A question whose obvious answer feels wrong.
 - Weird animal bodies and behaviours. Gross-but-harmless is great; scary is not.
-- Size, speed, age and distance a kid can feel, using comparisons to things they know (a school bus, a pizza).
-- Everyday things kids have touched or seen: a straw in a glass, a shadow, a spinning chair.
+- Size, speed, age and distance a kid can feel, using comparisons to things they know.
+- Everyday things kids have touched or seen.
 
-What has NOT worked (avoid): abstract ideas with nothing to see (number theory, proofs, philosophy), food-and-travel
-lists, generic "top 5" lists, anything aimed at adults (money, politics, news, celebrities).
+What tends not to work (avoid): abstract ideas with nothing to see, generic "top 5" lists, anything aimed at adults.
 
 STRICT RULES
 - Every topic is a NEW subject: never an animal, object, place or phenomenon already made, even from a new angle.
 - No death, injury to people, violence, war, disasters, disease, drugs, scary or gross-out-for-shock content.
 - No medical or safety advice, no brands, no real private people.
 - If a kid could not explain it back to a friend after one watch, it is too hard: pick something simpler."""
+AUDIENCE_NOTES = CHANNEL.get("audience_notes", AUDIENCE_NOTES)
+TOP_CATEGORIES = CHANNEL.get("top_categories", TOP_CATEGORIES)
 
 # Reading level and tone for the script (used in every script pass).
 KID_RULES = """KID LEVEL (strict)
