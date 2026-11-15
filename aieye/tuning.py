@@ -93,6 +93,7 @@ def validate(key, value):
             v = str(value).strip()
             if not re.fullmatch(r"#[0-9a-fA-F]{6}", v):
                 raise ValueError(f"{label} must look like #FFD93B.")
+            v = v.upper()                      # the colour picker sends lowercase; keep one spelling so "unchanged" stays unchanged
         elif kind == "voices":
             v = [x for x in value if x in spec["choices"]]
             if len(set(v)) < 2:
