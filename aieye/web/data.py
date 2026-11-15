@@ -122,12 +122,18 @@ def url_prefix():
     return "/" + h if HANDLE_OK.fullmatch(h) else "/new"
 
 
+def brand_name():
+    """The channel name shown in the top bar: the handle without @, or 'AI Eye' until the handle is set."""
+    p = url_prefix()
+    return p[2:] if p.startswith("/@") else "AI Eye"
+
+
 def save_channel(v):
     handle = (v.get("handle") or "").strip()
     if handle and not handle.startswith("@"):
         handle = "@" + handle
     if handle and not HANDLE_OK.fullmatch(handle):
-        raise ValueError("The handle can use letters, numbers, dots, dashes and underscores (3 to 30 characters), like @AIEyeFacts.")
+        raise ValueError("The handle can use letters, numbers, dots, dashes and underscores (3 to 30 characters), like @YourChannel.")
     url = (v.get("url") or "").strip()
     if url and not url.startswith(("http://", "https://")):
         raise ValueError("The channel address must start with https://")

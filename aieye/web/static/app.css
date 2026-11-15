@@ -242,3 +242,5 @@ a.tool h2 { margin-top: 0; }
 
 .badge-tag { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: 0; white-space: nowrap; }
 @media (max-width: 520px) { .badge-tag { display: none; } }
+.powered { color: var(--muted); font-size: 13px; margin-right: 8px; white-space: nowrap; } .powered strong { color: var(--text); font-weight: 600; } .powered:hover { text-decoration: none; } .powered:hover strong { text-decoration: underline; }
+@media (max-width: 700px) { .powered { display: none; } }
