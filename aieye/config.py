@@ -53,20 +53,23 @@ TTS_COST     = 16.70   # per 1M chars — estimate (~$0.015/min of speech); API 
 IMAGE_COST   = {"low": 0.005, "medium": 0.010, "high": 0.041}   # 1024x1536 output tokens × $30/1M
 IMAGE_OUT_COST, IMAGE_IN_COST, IMAGE_TEXT_IN_COST = 30.0, 8.0, 5.0   # $ per 1M tokens (gpt-image-2.5)
 
-CHANNEL = {
-    "handle": "@AIEyeFacts",
-    "url":    "https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw",
-    "tags":   ["Shorts", "AI", "Facts", "YouTube Shorts", "Science", "Learning", "AIEye"],
+CHANNEL_FILE = DATA_DIR / "channel.json"       # YOUR channel's identity (git-ignored); copy channel.example.json to start
+CHANNEL = {                                    # generic defaults, so the framework works out of the box
+    "handle": "",
+    "url":    "",
+    "tags":   ["Shorts", "Facts", "Science", "Learning"],
     "description": (
-        "5 facts. 60 seconds. Mind blown.\n\n"
-        "Science, space, nature, history, psychology — "
-        "the most fascinating things about our universe, "
-        "explained simply and fast.\n\n"
-        "Follow @AIEyeFacts — new Short every day.\n"
+        "Science, space, nature, history, psychology: "
+        "the most fascinating things about our universe, explained simply and fast.\n"
         "{scene_facts}\n\n"
-        "#Shorts #AIEye #Facts #Science #Learning"
+        "#Shorts #Facts #Science #Learning"
     ),
 }
+try:
+    import json as _json
+    CHANNEL.update(_json.loads(CHANNEL_FILE.read_text()))
+except (OSError, ValueError):
+    pass
 
 # Runtime config — set via CLI prompts
 CFG = {

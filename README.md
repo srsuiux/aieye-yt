@@ -3,7 +3,8 @@
 Turns a topic into a finished YouTube Short — script, narration, images, animated video with
 highlighted captions — and uploads it. One command (or one double-click) makes 1 video or a batch of 3 (never more than 3 a day).
 
-> **Channel:** [@AIEyeFacts](https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw) · *"5 facts. 60 seconds. Mind blown."*
+> A framework you run yourself with your own API keys. Your channel's name, description and stats stay on your machine in
+> git-ignored files (see [Your channel](#your-channel)); nothing about anyone's channel ships with the code.
 
 ---
 
@@ -62,6 +63,17 @@ python3 ysa-cli.py --setup
 ```
 
 The first video downloads the caption-timing model (~1.2 GB, once) into your torch cache.
+
+### Your channel
+
+Video descriptions and tags come from `data/channel.json`, which is git-ignored. Without it, generic defaults are used.
+
+```bash
+cp channel.example.json data/channel.json    # then edit handle, url, tags and description
+```
+
+`{scene_facts}` in the description is replaced by the video's facts. Personal files (`.env`, `data/`, `assets/channel/`,
+`yt-analysis/` for your own channel stats) are all git-ignored.
 
 ### YouTube setup
 
@@ -227,7 +239,7 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 
 | What | Constant |
 |---|---|
-| Channel name, description, tags | `CHANNEL` |
+| Channel name, description, tags | `data/channel.json` (see [Your channel](#your-channel)) |
 | Scenes per video / topics per refill | `N_SCENES`, `N_TOPICS` |
 | Pictures per scene (1 = old behaviour, cheapest) / shortest allowed shot | `MAX_SHOTS`, `MIN_SHOT_WORDS` |
 | Scenes whose images generate at once (lower if you hit rate limits) | `IMAGE_WORKERS` |
