@@ -1,4 +1,7 @@
-# Studio
+# Studio (beta)
+
+Studio is a **beta**: an experiment that is tested less than the rest of AI Eye. Tools, models, prices and results can change or
+break between versions.
 
 Studio is for trying AI video before you use it in a real video. It never touches your topic queue, your daily upload limit
 or YouTube. Everything it makes is saved in `data/experiments/` and shown on the Studio page.

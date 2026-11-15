@@ -28,7 +28,7 @@ NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
     {"href": "/create",      "label": "Create",      "icon": "plus"},
     {"href": "/library",     "label": "Library",     "icon": "film"},
-    {"href": "/studio",      "label": "Studio",      "icon": "flask"},
+    {"href": "/studio",      "label": "Studio",      "icon": "flask", "badge": "Beta"},
     {"href": "/topics",      "label": "Topics",      "icon": "list"},
     {"href": "/channel",     "label": "Channel",     "icon": "channel"},
     {"href": "/settings",    "label": "Settings",    "icon": "sliders"},

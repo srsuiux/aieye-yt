@@ -258,3 +258,6 @@ dialog { border: 1px solid var(--line); border-radius: 16px; padding: 22px; back
 dialog::backdrop { background: rgba(0,0,0,.55); }
 dialog h2 { margin: 0 0 8px; } dialog .actions { margin-top: 14px; }
 .btn.danger-solid { background: var(--danger); color: #fff; border-color: var(--danger); } .btn.danger-solid:disabled { opacity: .45; }
+em.beta { font-style: normal; font-size: 11px; font-weight: 600; letter-spacing: .02em; padding: 1px 7px; margin-left: 8px; border-radius: 999px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); vertical-align: middle; }
+.rail-item em.beta { margin-left: auto; }
+h1 em.beta { font-size: 12px; }

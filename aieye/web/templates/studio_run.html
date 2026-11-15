@@ -2,7 +2,7 @@
 {% block content %}
 <div class="page" id="srun" data-id="{{ st.id }}" data-tool="{{ st.params.tool }}">
   <p class="crumbs"><a href="{{ base }}/studio">Studio</a> <span aria-hidden="true">/</span> Run</p>
-  <div class="run-head"><h1 id="run-title">Working on it</h1><span class="status" id="run-status">Starting</span></div>
+  <div class="run-head"><h1 id="run-title">Working on it</h1><em class="beta">Beta</em><span class="status" id="run-status">Starting</span></div>
   <p class="muted">{{ st.params.prompt or st.params.topic }}</p>
   <div class="bar big-bar" role="progressbar" aria-label="Working"><i id="bar" style="width:100%" class="pulse"></i></div>
   <p class="muted" id="now">Starting…</p>

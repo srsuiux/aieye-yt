@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page">
-  <h1>Studio</h1>
+  <h1>Studio <em class="beta">Beta</em></h1>
   <p class="muted lead">Experiments with AI video, for trying ideas before you use them in a real video. Nothing here touches your topic queue, your daily upload limit or YouTube.</p>
+  <p class="legal-note"><strong>Beta:</strong> Studio is an experiment. Tools, models, prices and results can change or break, and they are tested less than Create. Nothing here is needed to make normal videos.</p>
   {% if active %}<div class="banner">Something is running. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
   <div class="tools">
     {% for key, t in tools.items() %}

@@ -34,7 +34,7 @@
 <div class="shell">
   <nav class="rail" aria-label="Main">
     {% for n in nav %}
-    <a href="{{ base }}{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span></a>
+    <a href="{{ base }}{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span>{% if n.badge %}<em class="beta">{{ n.badge }}</em>{% endif %}</a>
     {% endfor %}
   </nav>
   <main id="main">{% block content %}{% endblock %}

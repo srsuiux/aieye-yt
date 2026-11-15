@@ -3,8 +3,9 @@
 {% block content %}
 <div class="page">
   <p class="crumbs"><a href="{{ base }}/studio">Studio</a> <span aria-hidden="true">/</span> {{ t.label }}</p>
-  <h1>{{ t.title }}</h1>
+  <h1>{{ t.title }} <em class="beta">Beta</em></h1>
   <p class="muted lead">{{ t.blurb }}</p>
+  <p class="legal-note"><strong>Beta:</strong> an experiment that can change or break. It spends real money, so check the cost first.</p>
   {% if active %}<div class="banner">Something is already running. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
   {% if missing %}<div class="banner bad">Add your {% for k in missing %}{{ 'OpenAI' if k.startswith('OPENAI') else 'OpenRouter' }}{% if not loop.last %} and {% endif %}{% endfor %} key first. <a href="{{ base }}/connections">Open Connections</a>{% if 'OPENROUTER_API_KEY' in missing %} (<a href="{{ base }}/docs/get-openrouter-key">how to get one</a>){% endif %}</div>{% endif %}
   {% if err %}<div class="banner bad">{{ err }}</div>{% endif %}
