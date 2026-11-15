@@ -1,6 +1,6 @@
 # Video experiments
 
-These are side tools for trying AI video. They never touch your topic queue or the 3-a-day limit, and they never upload.
+These are side tools for trying AI video. They never touch your topic queue or the daily upload limit, and they never upload.
 Results go to `data/experiments/`.
 
 !!! warning

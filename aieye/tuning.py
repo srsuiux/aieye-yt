@@ -41,6 +41,8 @@ TUNABLES = {
                           help="Lower this if you see rate-limit messages."),
     "N_TOPICS":      dict(group="Script and pictures", kind="int", default=10, min=3, max=20, label="Topics added when the queue is empty",
                           help="How many new topic ideas the model writes at a time."),
+    "DAILY_LIMIT":   dict(group="Limits", kind="int", default=3, min=1, max=10, label="Videos pushed to YouTube per day",
+                          help="A safety brake: AI Eye refuses a run that would push more than this many videos today. Runs are still 1 or 3 videos at a time."),
     "TTS_STYLE":     dict(group="Narration", kind="longtext", default=TTS_STYLE, label="Narrator direction",
                           help="Tone and pacing instructions sent with every line of narration."),
     "VOICE_POOL":    dict(group="Narration", kind="voices", default=["marin", "cedar", "nova", "coral", "sage", "ash", "ballad", "verse"],

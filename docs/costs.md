@@ -17,7 +17,7 @@ Narration cost is an estimate, because the API does not report it.
 
 ## Limits that protect you
 
-- **3 videos a day.** AI Eye counts videos pushed to YouTube today and refuses a run that would go over. A video that was only
+- **A daily upload limit, 3 by default.** AI Eye counts videos pushed to YouTube today and refuses a run that would go over. Change it on the Settings page under Advanced, Limits (1 to 10). Keep it low: it protects you from a mistake that publishes too many videos. A video that was only
   rendered, or whose upload failed, does not count.
 - **1 or 3 videos per run.** No other batch size.
 - **Confirm before spending.** The terminal shows the settings and cost, then waits a few seconds (Ctrl+C cancels). The web app shows the cost and asks you to press **Start and spend**.

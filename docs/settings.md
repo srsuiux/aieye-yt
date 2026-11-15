@@ -40,6 +40,7 @@ Only the values you changed are saved, in `data/config.json`. The rest follow th
 
 | Group | Setting | Range or options |
 |---|---|---|
+| Limits | Videos pushed to YouTube per day | 1 to 10 (default 3). A safety brake; runs are still 1 or 3 videos. |
 | Models | Script model, Voice model, Image model | Any model id your account can use. One word, no spaces. |
 | Script and pictures | Scenes per video | 3 to 7 (default 5) |
 | | Pictures per scene (most) | 1 to 3 (default 3). 1 is the cheapest. |

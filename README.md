@@ -143,7 +143,7 @@ Hindi captions are shaped with macOS CoreText (Pillow can't shape Devanagari wit
 
 ### Experiments (optional, not part of the daily pipeline)
 
-Side tools for trying AI video. They never touch the topic queue, the 3-a-day limit or YouTube, and nothing is uploaded.
+Side tools for trying AI video. They never touch the topic queue, the daily upload limit or YouTube, and nothing is uploaded.
 All output goes to `data/experiments/` (git-ignored). The video modes need `OPENROUTER_API_KEY` in `.env`
 (key from [openrouter.ai/keys](https://openrouter.ai/keys)); `-img` and `-script` only need your OpenAI key.
 **None of the video models are free**: each command shows a price first, and `-y` skips that pause, so use it with care.
@@ -197,7 +197,7 @@ python3 aieye-cli.py --setup               # choose and save defaults, then exit
 | Flag | Meaning |
 |---|---|
 | `--quick` | Make 1 video with your saved defaults, no questions |
-| `--batch 1\|3` | Make 1 or 3 videos with your saved defaults. **Hard limit: 3 videos a day**; asking for more is refused |
+| `--batch 1\|3` | Make 1 or 3 videos with your saved defaults. **Daily limit: 3 videos pushed to YouTube** (change it in Settings > Advanced > Limits); asking for more is refused |
 | `--setup` | Choose and save default settings, then exit |
 | `--topic "…"` | Custom topic (single video only) |
 | `--privacy {public,private,unlisted,none}` | Override the saved privacy for this run |

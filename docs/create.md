@@ -31,7 +31,7 @@ asks you to press **Start and spend**. Only then does the run start.
 |---|---|
 | Add your OpenAI key first | Save it on the [Connections page](/connections) |
 | A video is already being made | One run at a time. Open it, wait for it, or cancel it. |
-| Today's limit is 3 videos pushed to YouTube | Try again tomorrow, or make fewer videos |
+| Today's limit is reached | The daily upload limit (3 by default). Make fewer videos, try again tomorrow, or change it in [Settings](/docs/settings) under Advanced, Limits |
 
 ## Watching a run
 

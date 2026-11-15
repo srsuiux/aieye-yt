@@ -19,7 +19,7 @@ Everything the web app can do can also be done from the terminal. Run `aieye hel
 
 | Option | Meaning |
 |---|---|
-| `-1` or `-3` | Make 1 or 3 videos. Nothing else is allowed, and never more than 3 a day. |
+| `-1` or `-3` | Make 1 or 3 videos. Nothing else is allowed, and a run that would go over the [daily limit](/docs/costs) is refused. |
 | `-def` | Use your saved defaults and ask nothing. A random narrator is used. |
 | `-trending` | Topic comes from what is trending on the web |
 | `-top` | Topics from the top categories, with photo-real close-ups |

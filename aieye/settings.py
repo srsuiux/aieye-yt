@@ -6,7 +6,7 @@ from .ui import c, fail, ok, prompt_choice, prompt_text
 
 # SETTINGS — saved defaults, run modes
 
-BATCH_DEFAULT = 3          # the only batch size; 1 or 3 videos per run, max 3 a day (aieye/limits.py)
+BATCH_DEFAULT = 3          # the only batch size; 1 or 3 videos per run, daily cap in aieye/limits.py, default 3
 SETTING_CHOICES = {
     "image_style":    ["representational", "realistic", "illustrated"],
     "image_quality":  list(IMAGE_COST),

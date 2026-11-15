@@ -18,5 +18,5 @@
 | A run says "stopped unexpectedly" | The process was closed (for example the computer slept or the app was stopped). Open Details for the output, then start again. |
 | A cancelled run left a topic "being made" | Open [Topics](/topics) and press Return to queue. |
 | The review video does not play | The file may still be finishing. Wait a few seconds and reload the run page. |
-| "I can't create more than 3 videos a day" | The daily safety limit. Try again tomorrow. |
+| "I can't create more than N videos a day" | The daily safety limit (3 by default). Try again tomorrow, or raise it under Settings, Advanced, Limits. |
 | A video in a batch failed | The others carry on. The summary lists each result. |
