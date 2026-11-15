@@ -15,11 +15,12 @@
           <option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>
             {%- if key == 'image_quality' %}{{ opt }} · about ${{ '%.2f' | format(d.cost[opt].one) }} a video, ${{ '%.2f' | format(d.cost[opt].batch) }} for 3
             {%- elif key == 'upload_privacy' and opt == 'none' %}none (render only, do not upload)
+            {%- elif key == 'tts_voice' %}{{ voice_label(opt) }}
             {%- else %}{{ opt }}{% endif -%}
           </option>
           {% endfor %}
         </select>
-        <p class="hint">{{ d.info[key][1] }}</p>
+        <p class="hint">{{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI and are billed to your OpenAI key.{% endif %}</p>
       </div>
       {% endfor %}
       <div class="field"><label class="inline"><input type="checkbox" id="d-review" {{ 'checked' if d.review else '' }}> Review each video before it uploads</label>
@@ -52,7 +53,7 @@
             {% elif it.kind == 'longtext' %}
               <textarea id="a-{{ it.key }}" data-key="{{ it.key }}" rows="6">{{ it.value }}</textarea>
             {% elif it.kind == 'voices' %}
-              <div class="checks" id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.choices %}<label><input type="checkbox" value="{{ o }}" {{ 'checked' if o in it.value else '' }}> {{ o }}</label>{% endfor %}</div>
+              <div class="checks" id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.choices %}<label><input type="checkbox" value="{{ o }}" {{ 'checked' if o in it.value else '' }}> <span>{{ o }} <span class="muted small">{{ voice_info.get(o, ('',''))[0] }}</span></span></label>{% endfor %}</div>
             {% else %}
               <input id="a-{{ it.key }}" type="text" data-key="{{ it.key }}" value="{{ it.value }}" spellcheck="false">
             {% endif %}

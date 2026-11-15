@@ -47,7 +47,7 @@
         <div class="fields two">
           {% for key in ['image_quality','image_style','tts_voice','batch_voice'] %}
           <div class="field"><label for="f-{{ key }}">{{ d.info[key][0] }}</label>
-            <select id="f-{{ key }}" name="{{ key }}">{% for opt in d.choices[key] %}<option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>{{ opt }}</option>{% endfor %}</select></div>
+            <select id="f-{{ key }}" name="{{ key }}">{% for opt in d.choices[key] %}<option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>{{ voice_label(opt) if key == 'tts_voice' else opt }}</option>{% endfor %}</select></div>
           {% endfor %}
         </div>
       </section>

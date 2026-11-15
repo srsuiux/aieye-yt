@@ -14,6 +14,30 @@ SETTING_CHOICES = {
     "tts_voice":      ["marin", "cedar", "nova", "alloy", "echo", "fable", "onyx", "shimmer", "coral", "sage", "ash", "ballad", "verse"],
     "batch_voice":    ["shuffle", "same"],
 }
+# Where each narrator comes from, and what it sounds like. Add a new provider's voices here and they show up in the web app.
+VOICE_INFO = {
+    "marin":   ("OpenAI", "Natural, lively female. Best quality."),
+    "cedar":   ("OpenAI", "Natural, grounded male. Best quality."),
+    "nova":    ("OpenAI", "Warm, upbeat female"),
+    "alloy":   ("OpenAI", "Neutral, balanced, clear and professional"),
+    "echo":    ("OpenAI", "Smooth male, calm and authoritative"),
+    "fable":   ("OpenAI", "Expressive British, storytelling feel"),
+    "onyx":    ("OpenAI", "Deep, rich male, dramatic and bold"),
+    "shimmer": ("OpenAI", "Soft, gentle female"),
+    "coral":   ("OpenAI", "Warm, friendly female"),
+    "sage":    ("OpenAI", "Calm, thoughtful"),
+    "ash":     ("OpenAI", "Clear, steady male"),
+    "ballad":  ("OpenAI", "Smooth, expressive"),
+    "verse":   ("OpenAI", "Bright, dynamic"),
+}
+
+
+def voice_label(name):
+    """'marin · OpenAI · Natural, lively female. Best quality.' for menus."""
+    prov, desc = VOICE_INFO.get(name, ("", ""))
+    return " · ".join(p for p in (name, prov, desc) if p)
+
+
 OPTIONAL_SETTINGS = {"batch_voice": "shuffle"}     # missing in older settings files → use this
 # Voices used when a batch shuffles narrators. Samples of every voice are in assets/voice_samples/ — edit to taste.
 VOICE_POOL = tune("VOICE_POOL")

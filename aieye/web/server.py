@@ -13,6 +13,7 @@ from .. import envfile
 from ..languages import LANGS
 from ..config import IMAGE_COST, CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
+from ..settings import VOICE_INFO, voice_label
 from ..store import load_db
 from . import connections, data, docs, jobs, studio
 
@@ -44,7 +45,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
     allowed_hosts = set(LOCAL_HOSTS) | ({bind_host} if bind_host not in ("0.0.0.0", "::") else set())
 
     def page(request, name, status=200, **ctx):
-        ctx.update(nav=NAV, path=request.url.path, remote=bool(token), request=request,
+        ctx.update(voice_label=voice_label, voice_info=VOICE_INFO, nav=NAV, path=request.url.path, remote=bool(token), request=request,
                    auto_tour=(request.url.path == "/" and data.is_fresh_install()))
         return templates.TemplateResponse(request, name, ctx, status_code=status)
 

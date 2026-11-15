@@ -66,3 +66,9 @@ If you edit `data/config.json` by hand, any value that is out of range is ignore
 cannot stop a run.
 
 Your channel's name, description and tags are on the [Channel page](/docs/channel-info).
+
+## Where voices come from
+
+Every narrator in the menus is shown with the company that provides it, for example `marin · OpenAI · Natural, lively female`.
+Today all voices come from OpenAI and are billed to your OpenAI key. If other providers are added later, their voices will appear
+in the same menus with their own name.
