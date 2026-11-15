@@ -80,7 +80,7 @@ input[type=file] { font: 13px var(--font); color: var(--muted); max-width: 100%;
 .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; font-size: 13px; margin-top: 1px; }
 .checklist .done .tick { background: var(--ok); border-color: var(--ok); color: #fff; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
-.thumb { aspect-ratio: 9/14; border-radius: var(--r); background: linear-gradient(160deg, #272727, #0f0f0f); color: #fff; display: flex; align-items: flex-end; padding: 12px; overflow: hidden; }
+.thumb { position: relative; display: flex; aspect-ratio: 9/14; border-radius: var(--r); background: linear-gradient(160deg, #272727, #0f0f0f); color: #fff; display: flex; align-items: flex-end; padding: 12px; overflow: hidden; }
 .thumb span { font-size: 15px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 .vcard .meta { padding: 8px 2px; } .vcard h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .vcard p { margin: 2px 0; }
@@ -199,3 +199,8 @@ label.inline { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .kept-item { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; margin: 0; }
 .kept-item details summary { cursor: pointer; font-size: 14px; margin: 4px 0; }
 @media (max-width: 900px) { .create { grid-template-columns: 1fr; } .create-side .sticky { position: static; } .review, .kept-item { grid-template-columns: 1fr; } .review video, .kept-item video { max-width: 260px; } }
+
+.thumb { text-decoration: none; }
+.thumb:hover { text-decoration: none; }
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: var(--r); }
+.thumb img ~ span { display: none; }   /* the real thumbnail already carries the title; the text is only the fallback */

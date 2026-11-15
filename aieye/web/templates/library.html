@@ -33,7 +33,13 @@
 
   <h2 class="section-title">Uploaded</h2>
   {% if uploaded %}
-  <ul class="plain">{% for u in uploaded %}<li><span><a href="{{ u.link }}" target="_blank" rel="noopener">{{ u.title }}</a></span><span class="muted small">{{ u.when }}{% if u.cost %} · ${{ '%.2f' | format(u.cost) }}{% endif %}</span></li>{% endfor %}</ul>
+  <div class="cards">{% for u in uploaded %}
+    <article class="vcard">
+      <a class="thumb" href="{{ u.link }}" target="_blank" rel="noopener" aria-label="Watch {{ u.title }} on YouTube">
+        {% if u.thumb %}<img src="{{ u.thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}<span>{{ u.title }}</span></a>
+      <div class="meta"><h3>{{ u.title }}</h3><p class="muted small">{{ u.when }}{% if u.cost %} · ${{ '%.2f' | format(u.cost) }}{% endif %}</p></div>
+    </article>{% endfor %}
+  </div>
   {% else %}<p class="muted">Nothing uploaded yet.</p>{% endif %}
 
   <h2 class="section-title">Recent runs</h2>

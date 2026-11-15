@@ -31,6 +31,11 @@ NAV = [   # the rail: only pages that exist are listed
     {"href": "/docs",        "label": "Docs",        "icon": "book"},
 ]
 
+def thumb_url(video_id):
+    """YouTube's public thumbnail for a published video (the browser loads it; private videos have none, the page falls back)."""
+    return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg" if video_id and video_id != "unknown" else None
+
+
 def create_app(token=None, bind_host="127.0.0.1"):
     app = FastAPI(title="AI Eye", docs_url=None, redoc_url=None, openapi_url=None)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
@@ -72,7 +77,9 @@ def create_app(token=None, bind_host="127.0.0.1"):
         recent = sorted(final, key=lambda e: e.get("completed_at", ""), reverse=True)[:8]
         for e in recent:
             ids = e.get("youtube_ids") or ({"en": e["youtube_id"]} if e.get("youtube_id") else {})
-            e["link"] = f"https://youtube.com/shorts/{next(iter(ids.values()))}" if ids else None
+            vid = next(iter(ids.values()), None)
+            e["link"] = f"https://youtube.com/shorts/{vid}" if vid else None
+            e["thumb"] = thumb_url(vid)
             try:
                 e["when"] = datetime.fromisoformat(e["completed_at"]).strftime("%b %d, %H:%M")
             except (KeyError, ValueError):
@@ -167,7 +174,8 @@ def create_app(token=None, bind_host="127.0.0.1"):
         for e in sorted(load_db(FINAL_DB), key=lambda x: x.get("completed_at", ""), reverse=True)[:12]:
             ids = e.get("youtube_ids") or ({"en": e["youtube_id"]} if e.get("youtube_id") else {})
             if ids:
-                out.append({"title": e.get("title") or e.get("topic"), "link": f"https://youtube.com/shorts/{next(iter(ids.values()))}",
+                vid = next(iter(ids.values()))
+                out.append({"title": e.get("title") or e.get("topic"), "link": f"https://youtube.com/shorts/{vid}", "thumb": thumb_url(vid),
                             "when": datetime.fromisoformat(e["completed_at"]).strftime("%b %d, %H:%M") if e.get("completed_at") else "",
                             "cost": e.get("cost")})
         return out
