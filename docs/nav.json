@@ -45,6 +45,14 @@
     "section": "Using it",
     "pages": [
       {
+        "slug": "create",
+        "title": "Create a video"
+      },
+      {
+        "slug": "library",
+        "title": "Library and uploads"
+      },
+      {
         "slug": "topics",
         "title": "Topics and the queue"
       },

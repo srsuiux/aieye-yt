@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page" id="run" data-id="{{ st.id }}" data-kind="{{ st.kind }}" data-review="{{ 1 if st.params.review else 0 }}"
+     data-upload="{{ 1 if (st.kind == 'upload' or st.params.upload_privacy != 'none') else 0 }}" data-state="{{ st.state }}">
+  <p class="crumbs"><a href="/create">Create</a> <span aria-hidden="true">/</span> Run</p>
+  <div class="run-head">
+    <h1 id="run-title">{{ 'Uploading a video' if st.kind == 'upload' else 'Making your video' }}</h1>
+    <span class="status" id="run-status">Starting</span>
+  </div>
+  <p class="muted" id="run-topic"></p>
+
+  <div class="bar big-bar" role="progressbar" aria-label="Progress"><i id="bar" style="width:3%"></i></div>
+
+  <ol class="tracker" id="tracker"></ol>
+
+  <div class="run-meta">
+    <span>Cost so far <strong id="cost">$0.0000</strong></span>
+    <span id="clock">0:00</span>
+    <button class="btn ghost danger" id="cancel" type="button">Cancel run</button>
+  </div>
+
+  <section class="panel" id="review" hidden>
+    <h2>Review before upload <span class="muted small" id="review-lang"></span></h2>
+    <div class="review">
+      <video id="review-video" controls playsinline preload="metadata"></video>
+      <div class="fields">
+        <div class="field"><label for="r-title">Title</label><input id="r-title" type="text" maxlength="100"></div>
+        <div class="field"><label for="r-desc">Description</label><textarea id="r-desc" rows="8"></textarea></div>
+        <div class="field"><label for="r-tags">Tags</label><input id="r-tags" type="text"><p class="hint">Separate with commas.</p></div>
+        <div class="field"><label for="r-privacy">Who can watch it</label>
+          <select id="r-privacy">{% for p in privacies %}<option value="{{ p }}">{{ p }}</option>{% endfor %}</select></div>
+        <div class="actions"><button class="btn" id="r-upload" type="button">Upload to YouTube</button>
+          <button class="btn ghost" id="r-skip" type="button">Skip upload, keep the video</button><span class="note" id="r-note"></span></div>
+        <p class="hint">Skipped videos stay in the <a href="/library">Library</a>, where you can upload them later.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="result" hidden>
+    <h2 id="result-title"></h2>
+    <ul class="results" id="result-list"></ul>
+    <p class="actions"><a class="btn" href="/create">Make another</a> <a class="btn ghost" href="/library">Open Library</a></p>
+  </section>
+
+  <details class="panel logbox" id="logbox">
+    <summary>Details</summary>
+    <pre id="log" aria-live="off"></pre>
+  </details>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/run.js"></script>{% endblock %}

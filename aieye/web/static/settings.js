@@ -12,6 +12,7 @@
     e.preventDefault();
     var v = {};
     qa("#defaults-form [data-key]").forEach(function (el) { v[el.dataset.key] = el.value; });
+    v.review_before_upload = q("#d-review").checked;
     aieye.api("PUT", "/api/settings/defaults", v).then(function (d) {
       note(q("#defaults-note"), !!d.ok, d.message || "Could not save.");
       if (d.ok) aieye.toast("Defaults saved");

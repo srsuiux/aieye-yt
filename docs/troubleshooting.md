@@ -14,5 +14,9 @@
 | YouTube sign-in stops working after a week | Normal while your Google app is in Testing. Press **Sign in with Google** again. |
 | Upload fails | The video is still saved in `data/output/`. Check the client file, then sign out and in again on the Connections page. |
 | Uploads stay private | Google restricts new unaudited API projects. See [Set up YouTube uploads](/docs/youtube-setup). |
+| The Create button is disabled | A run is in progress, or the OpenAI key is missing. Open the run, or add the key on Connections. |
+| A run says "stopped unexpectedly" | The process was closed (for example the computer slept or the app was stopped). Open Details for the output, then start again. |
+| A cancelled run left a topic "being made" | Open [Topics](/topics) and press Return to queue. |
+| The review video does not play | The file may still be finishing. Wait a few seconds and reload the run page. |
 | "I can't create more than 3 videos a day" | The daily safety limit. Try again tomorrow. |
 | A video in a batch failed | The others carry on. The summary lists each result. |

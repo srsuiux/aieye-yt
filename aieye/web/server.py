@@ -1,19 +1,20 @@
 """`aieye web`: a local web app. Bound to 127.0.0.1 by default; anything wider needs --host and asks for a token."""
-import secrets, threading, webbrowser
+import json, secrets, shutil, threading, webbrowser
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .. import envfile
-from ..config import CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
+from ..languages import LANGS
+from ..config import CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
 from ..store import load_db
-from . import connections, data, docs
+from . import connections, data, docs, jobs
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_PORT = 8420
@@ -21,6 +22,8 @@ LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
+    {"href": "/create",      "label": "Create",      "icon": "plus"},
+    {"href": "/library",     "label": "Library",     "icon": "film"},
     {"href": "/topics",      "label": "Topics",      "icon": "list"},
     {"href": "/channel",     "label": "Channel",     "icon": "channel"},
     {"href": "/settings",    "label": "Settings",    "icon": "sliders"},
@@ -94,6 +97,29 @@ def create_app(token=None, bind_host="127.0.0.1"):
         return page(request, "connections.html", title="Connections", keys=connections.keys_status(),
                     yt=connections.youtube_status())
 
+    @app.get("/create", response_class=HTMLResponse)
+    def create_page(request: Request):
+        d = data.defaults_view()
+        queue = [t for t in load_db(DRAFT_DB) if t.get("status") == "pending"]
+        return page(request, "create.html", title="Create", d=d, langs={k: v[0] for k, v in LANGS.items()},
+                    left=DAILY_LIMIT - pushed_today(), limit=DAILY_LIMIT, next_topic=queue[0]["title"] if queue else None,
+                    queued=len(queue), sources=jobs.SOURCES, active=jobs.active(), has_key=envfile.key_status("OPENAI_API_KEY")["set"],
+                    can_upload=connections.youtube_status()["signed_in"], extra_lang=jobs.EXTRA_LANGUAGE_COST)
+
+    @app.get("/runs/{job_id}", response_class=HTMLResponse)
+    def run_page(request: Request, job_id: str):
+        try:
+            st = jobs.status(job_id)
+        except jobs.JobError:
+            return page(request, "error.html", status=404, title="Not found", message="That run does not exist any more.",
+                        back=("/create", "Make a video"))
+        return page(request, "run.html", title="Run", st=st, privacies=["public", "unlisted", "private"])
+
+    @app.get("/library", response_class=HTMLResponse)
+    def library_page(request: Request):
+        return page(request, "library.html", title="Library", kept=library_items(), active=jobs.active(),
+                    uploaded=uploaded_items(), recent=jobs.recent(6), can_upload=connections.youtube_status()["signed_in"])
+
     @app.get("/settings", response_class=HTMLResponse)
     def settings_page(request: Request):
         return page(request, "settings.html", title="Settings", d=data.defaults_view(), groups=data.tuning_view())
@@ -117,6 +143,111 @@ def create_app(token=None, bind_host="127.0.0.1"):
             return page(request, "error.html", status=404, title="Not found",
                         message="That documentation page does not exist.", back=("/docs", "Back to the docs"))
         return page(request, "docs.html", title=doc["title"], doc=doc, docs_nav=docs.nav())
+
+    # ── Library: videos kept on this computer ────────────────────────────────────────────────────────────────
+    def library_items():
+        act = jobs.active()
+        items = []
+        for video in sorted(OUTPUT_DIR.glob("*/short.mp4")) + sorted(OUTPUT_DIR.glob("*/*/short.mp4")):
+            folder = video.parent
+            if act and folder.stat().st_mtime >= act["created"] - 5:
+                continue                                # still being made or waiting for review
+            try:
+                meta = json.loads((folder / "youtube_metadata.json").read_text())
+            except (OSError, ValueError):
+                continue
+            items.append({"id": str(folder.relative_to(OUTPUT_DIR)), "title": meta.get("title", folder.name), "meta": meta,
+                          "when": datetime.fromtimestamp(video.stat().st_mtime).strftime("%b %d, %H:%M"),
+                          "size": round(video.stat().st_size / 1e6, 1), "lang": LANGS.get(meta.get("lang", "en"), ("English",))[0],
+                          "tags": meta.get("tags") or CHANNEL["tags"]})
+        return list(reversed(items))
+
+    def uploaded_items():
+        out = []
+        for e in sorted(load_db(FINAL_DB), key=lambda x: x.get("completed_at", ""), reverse=True)[:12]:
+            ids = e.get("youtube_ids") or ({"en": e["youtube_id"]} if e.get("youtube_id") else {})
+            if ids:
+                out.append({"title": e.get("title") or e.get("topic"), "link": f"https://youtube.com/shorts/{next(iter(ids.values()))}",
+                            "when": datetime.fromisoformat(e["completed_at"]).strftime("%b %d, %H:%M") if e.get("completed_at") else "",
+                            "cost": e.get("cost")})
+        return out
+
+    def kept_folder(folder_id):
+        p = (OUTPUT_DIR / folder_id).resolve()
+        if OUTPUT_DIR.resolve() not in p.parents or not (p / "short.mp4").exists():
+            raise HTTPException(404, "That video is no longer on this computer.")
+        return p
+
+    @app.get("/library/video/{folder_id:path}")
+    def library_video(folder_id: str):
+        return FileResponse(kept_folder(folder_id) / "short.mp4", media_type="video/mp4")
+
+    @app.post("/api/library/upload")
+    async def api_library_upload(request: Request):
+        body = await request.json()
+        try:
+            folder = kept_folder(body.get("id", ""))
+            return {"ok": True, "job": jobs.start_upload(folder, body.get("meta", {}))}
+        except HTTPException as e:
+            return bad(e.detail, 404)
+        except jobs.JobError as e:
+            return bad(str(e))
+
+    @app.post("/api/library/delete")
+    async def api_library_delete(request: Request):
+        body = await request.json()
+        try:
+            shutil.rmtree(kept_folder(body.get("id", "")), ignore_errors=True)
+        except HTTPException as e:
+            return bad(e.detail, 404)
+        return {"ok": True}
+
+    # ── Jobs API ──────────────────────────────────────────────────────────────────────────────────────────────
+    @app.post("/api/jobs")
+    async def api_start_job(request: Request):
+        try:
+            return {"ok": True, "job": jobs.start_make(await request.json())}
+        except (jobs.JobError, ValueError) as e:
+            return bad(str(e))
+
+    @app.get("/api/jobs/{job_id}")
+    def api_job(job_id: str, after: int = 0):
+        try:
+            st = jobs.status(job_id)
+            evs, nxt = jobs.events(job_id, after)
+            out = {"status": st, "events": evs, "next": nxt}
+            if st["state"] in ("failed", "cancelled"):
+                out["log"] = jobs.log_tail(job_id)
+            if st["state"] == "review":
+                info = jobs.get_review(job_id, st["review"])
+                out["review"] = {"index": st["review"], "title": info["title"], "lang": info["lang"], "meta": info["meta"]}
+            return out
+        except jobs.JobError as e:
+            return bad(str(e), 404)
+
+    @app.post("/api/jobs/{job_id}/cancel")
+    def api_cancel(job_id: str):
+        try:
+            jobs.cancel(job_id)
+        except jobs.JobError as e:
+            return bad(str(e), 404)
+        return {"ok": True}
+
+    @app.get("/jobs/{job_id}/review/{n}/video")
+    def api_review_video(job_id: str, n: int):
+        try:
+            return FileResponse(jobs.review_video_path(job_id, n), media_type="video/mp4")
+        except jobs.JobError as e:
+            raise HTTPException(404, str(e))
+
+    @app.post("/api/jobs/{job_id}/review/{n}")
+    async def api_review_decide(job_id: str, n: int, request: Request):
+        body = await request.json()
+        try:
+            jobs.decide(job_id, n, body.get("action"), body.get("meta"))
+        except jobs.JobError as e:
+            return bad(str(e))
+        return {"ok": True}
 
     # ── Connections API ───────────────────────────────────────────────────────────────────────────────────────
     def bad(msg, code=400):

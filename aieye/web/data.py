@@ -23,8 +23,15 @@ SETTING_INFO = {
 # ── Defaults (data/settings.json) ──────────────────────────────────────────────────────────────────────────────
 def defaults_view():
     saved = load_defaults()
-    return {"values": saved or FALLBACK_DEFAULTS, "saved": bool(saved), "choices": SETTING_CHOICES, "info": SETTING_INFO,
+    return {"values": saved or FALLBACK_DEFAULTS, "review": review_default(), "saved": bool(saved), "choices": SETTING_CHOICES, "info": SETTING_INFO,
             "cost": {q: {"one": round(est_cost_per_video(q), 2), "batch": round(est_cost_per_video(q) * BATCH_DEFAULT, 2)} for q in IMAGE_COST}}
+
+def review_default():
+    """Review a video before it uploads? True unless you turned it off. Stored with the defaults, used to pre-fill Create."""
+    try:
+        return bool(json.loads(SETTINGS_FILE.read_text()).get("review_before_upload", True))
+    except (OSError, ValueError):
+        return True
 
 def save_defaults(values):
     clean = {}
@@ -33,6 +40,7 @@ def save_defaults(values):
         if v not in ok_vals:
             raise ValueError(f"{SETTING_INFO[k][0]} must be one of: {', '.join(ok_vals)}.")
         clean[k] = v
+    clean["review_before_upload"] = bool(values.get("review_before_upload", True))
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_FILE.write_text(json.dumps(clean, indent=2))
     return clean

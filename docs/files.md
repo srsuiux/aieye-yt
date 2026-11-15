@@ -12,6 +12,7 @@ Everything personal lives in `data/` and `.env`, which are git-ignored. You can 
 | `data/credentials/youtube_token.pickle` | Your YouTube sign-in |
 | `data/db/draft.json` | The topic queue |
 | `data/db/final.json` | One short line per finished video |
+| `data/jobs/<time>/` | One folder per web run: its settings, live events, review answers and result. The 20 most recent are kept. |
 | `data/output/<time>/` | Videos being made, or finished but not uploaded |
 | `data/experiments/` | Results of the video experiments |
 

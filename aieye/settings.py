@@ -47,6 +47,11 @@ def load_defaults():
 
 def save_defaults():
     data = {k: CFG[k] for k in SETTING_CHOICES}
+    try:                                        # keep settings only the web app uses (e.g. review_before_upload)
+        old = json.load(open(SETTINGS_FILE))
+        data.update({k: v for k, v in old.items() if k not in SETTING_CHOICES})
+    except Exception:
+        pass
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(SETTINGS_FILE, "w") as f:
         json.dump(data, f, indent=2)

@@ -22,6 +22,8 @@
         <p class="hint">{{ d.info[key][1] }}</p>
       </div>
       {% endfor %}
+      <div class="field"><label class="inline"><input type="checkbox" id="d-review" {{ 'checked' if d.review else '' }}> Review each video before it uploads</label>
+        <p class="hint">After a video is made you see it, can change the title, description and tags, and then choose to upload or skip. You can still turn this off for one run on the Create page.</p></div>
       <p class="note warn-note" id="public-warn" hidden>Public means every finished video is published immediately, including all three in a batch.</p>
       <div class="actions"><button class="btn" type="submit">Save defaults</button><span class="note" id="defaults-note"></span></div>
     </form>

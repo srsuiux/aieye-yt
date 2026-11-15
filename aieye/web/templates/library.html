@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Library</h1>
+  <p class="muted lead">Videos that were made but not uploaded stay here until you upload or delete them.</p>
+
+  {% if active %}<div class="banner">A video is being made. <a href="/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+
+  <h2 class="section-title">Waiting to upload <span class="muted">({{ kept | length }})</span></h2>
+  {% if kept %}
+  <div class="kept">
+    {% for v in kept %}
+    <article class="panel kept-item" data-id="{{ v.id }}" data-privacy="private">
+      <video controls preload="none" playsinline src="/library/video/{{ v.id }}"></video>
+      <div class="fields">
+        <div class="field"><label>Title</label><input type="text" class="k-title" maxlength="100" value="{{ v.meta.title }}"></div>
+        <details><summary>Description and tags</summary>
+          <div class="field"><label>Description</label><textarea class="k-desc" rows="6">{{ v.meta.description }}</textarea></div>
+          <div class="field"><label>Tags</label><input type="text" class="k-tags" value="{{ v.tags | join(', ') }}"></div></details>
+        <div class="field"><label>Who can watch it</label>
+          <select class="k-privacy"><option>private</option><option>unlisted</option><option>public</option></select></div>
+        <p class="muted small">{{ v.lang }} · made {{ v.when }} · {{ v.size }} MB</p>
+        <div class="actions"><button class="btn k-upload" type="button" {{ '' if (can_upload and not active) else 'disabled' }}>Upload to YouTube</button>
+          <button class="btn ghost danger k-delete" type="button">Delete video</button><span class="note k-note"></span></div>
+        {% if not can_upload %}<p class="hint">YouTube is not connected. <a href="/connections#youtube">Connect YouTube</a> to upload.</p>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>Nothing is waiting. Videos made with upload set to none, skipped at review, or whose upload failed appear here.</p><a class="btn" href="/create">Make a video</a></div>
+  {% endif %}
+
+  <h2 class="section-title">Uploaded</h2>
+  {% if uploaded %}
+  <ul class="plain">{% for u in uploaded %}<li><span><a href="{{ u.link }}" target="_blank" rel="noopener">{{ u.title }}</a></span><span class="muted small">{{ u.when }}{% if u.cost %} · ${{ '%.2f' | format(u.cost) }}{% endif %}</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">Nothing uploaded yet.</p>{% endif %}
+
+  <h2 class="section-title">Recent runs</h2>
+  {% if recent %}
+  <ul class="plain">{% for r in recent %}<li><a href="/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else '')) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">No runs yet.</p>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/library.js"></script>{% endblock %}

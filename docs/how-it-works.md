@@ -13,9 +13,9 @@ A video is about 45 to 55 seconds, vertical (1080 by 1920), with 10 to 12 pictur
 
 ## Review before uploading
 
-When you create a video in the web app, you can choose to review it before it uploads. The app then pauses after the video is
-made, shows a preview, and lets you edit the title, description, tags and privacy before you upload or skip. The choice is
-pre-filled from your saved default. (The Create page arrives in a later update.)
+When you create a video in the web app, you can choose to review it before it uploads. The run pauses after the video is made,
+shows a preview, and lets you edit the title, description, tags and privacy before you upload or skip. The choice is pre-filled
+from your saved default. See [Create a video](/docs/create).
 
 ## After a run
 

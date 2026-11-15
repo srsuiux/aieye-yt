@@ -9,13 +9,16 @@ Every part of the app has its own address, so you can bookmark it and use the ba
 | Page | Address | What it is for |
 |---|---|---|
 | Home | `/` | Today's upload count out of 3, a setup checklist and your recent videos |
+| Create | `/create` | Make 1 or 3 videos: topic, languages, look, cost estimate, confirm. See [Create a video](/docs/create) |
+| Run | `/runs/<id>` | Watch a run live, review the finished video, cancel |
+| Library | `/library` | Videos not uploaded yet (preview, edit, upload, delete), uploaded videos, recent runs. See [Library](/docs/library) |
 | Topics | `/topics` | The queue of topics: add, reorder, remove, and see what is already made. See [Topics](/docs/topics) |
 | Channel | `/channel` | Your handle, description, tags and topic taste. See [Channel details](/docs/channel-info) |
 | Settings | `/settings` | Defaults for new videos (style, quality, privacy, narrator) and the advanced models and look. See [Settings](/docs/settings) |
 | Connections | `/connections` | Save your OpenAI and OpenRouter keys, add the YouTube client file, sign in to YouTube |
 | Docs | `/docs` | This documentation |
 
-Creating a video from the browser, with a live view and a review step before upload, and the video experiments arrive in later updates. This page lists only what exists today.
+The video experiments (Studio) arrive in a later update. This page lists only what exists today.
 
 ## Options
 
@@ -47,6 +50,7 @@ The app then prints a link that contains a random access token. The badge change
 
 - The app refuses requests whose `Host` header is not `localhost` or `127.0.0.1`, which blocks DNS-rebinding attacks.
 - Changes (saving a key, signing in) are accepted only from the app's own pages. Other websites cannot trigger them.
+- Each video is made in its own process, so Cancel stops it cleanly and your latest settings always apply.
 - Keys are never sent back to the browser. You see only the last 4 characters.
 - Keys are written to `.env` in the AI Eye folder with owner-only permissions.
 

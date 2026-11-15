@@ -35,13 +35,11 @@ do not have one yet.
 
 ## 5. Make your first video
 
-Until the Create page ships in the web app, make videos from the terminal:
+Open **Create**, check the form, press **Make video**, then **Start and spend**. You can watch each step and review the video
+before it uploads. See [Create a video](/docs/create).
 
-```bash
-aieye run -1 -def
-```
-
-This asks nothing, shows the settings and an estimated cost, and starts after a short countdown. Press Ctrl+C to cancel.
+Prefer the terminal? `aieye run -1 -def` does the same with your saved settings. It shows the cost and starts after a short
+countdown; press Ctrl+C to cancel.
 
 !!! warning
     If upload privacy is `public`, the finished video is published at once. Choose `private` or `none` (render only) in your

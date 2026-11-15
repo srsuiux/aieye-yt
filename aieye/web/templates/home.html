@@ -26,8 +26,8 @@
     </section>
     <section class="panel">
       <h2>Make a video</h2>
-      <p class="muted">Creating videos from this page arrives with the next update of the web app. Until then, run <code>aieye run -1 -def</code> in the terminal; finished videos appear below.</p>
-      <p><a class="btn ghost" href="/docs/terminal">Terminal commands</a> <a class="btn ghost" href="/docs/web-app">About the web app</a></p>
+      <p class="muted">Pick a topic, a language and a look, see the cost, then watch the video being made and review it before it uploads.</p>
+      <p><a class="btn" href="/create">Create a video</a> <a class="btn ghost" href="/library">Library</a></p>
     </section>
   </div>
 
@@ -46,7 +46,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then run your first video from the terminal.</p><a class="btn" href="/connections">Open Connections</a></div>
+  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then create your first video.</p><a class="btn" href="/connections">Open Connections</a> <a class="btn ghost" href="/create">Create a video</a></div>
   {% endif %}
 </div>
 {% endblock %}

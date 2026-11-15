@@ -20,8 +20,9 @@ python3 aieye-cli.py --quick                        # make 1 video
 
 Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
 
-**Web app:** `aieye web` opens the same tool in your browser (local only by default): manage topics, channel details, defaults and advanced
-settings (models, scenes, caption look), save API keys and the YouTube sign-in, and read the docs. The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
+**Web app:** `aieye web` opens the same tool in your browser (local only by default): create videos and watch them being made (with an optional review step before upload), manage topics,
+channel details, defaults and advanced settings (models, scenes, caption look), keep or upload finished videos, save API keys and
+the YouTube sign-in, and read the docs. The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
 
 **Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) ·
 [The `aieye` command](#the-aieye-command) · [Experiments](#experiments-optional-not-part-of-the-daily-pipeline) · [Usage](#usage) ·
@@ -336,14 +337,15 @@ aieye/                      the pipeline, one module per step
     video.py                  step 4  render + assemble
     ffmpeg.py                 ffmpeg lookup / runner
     youtube.py                step 5  upload
-    pipeline.py               run_one / main, cleanup after posting
+    pipeline.py               run_one / run_batch / main, cleanup after posting
+    webjob.py                 one web-app run in its own process: events, review pause, upload
     tuning.py                 advanced settings: defaults, limits, validation (your changes: data/config.json)
     imgexp.py                 experiment  -img   stills
     videxp.py                 experiment  -vid   image-to-video via OpenRouter, model list and prices
     scriptlab.py              experiment  -script   research, draft, critic, revise
     film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
     menu.py                   experiment  menu   guided AI video studio
-aieye/web/                  the web app: server.py (routes + guard), data.py (settings/channel/topics), connections.py, docs.py, templates/, static/
+aieye/web/                  the web app: server.py (routes + guard), jobs.py (runs), data.py (settings/channel/topics), connections.py, docs.py, templates/, static/
 docs/                       documentation as Markdown (docs/nav.json = order); served at /docs by the web app
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)

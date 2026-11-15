@@ -11,7 +11,7 @@ from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
 from .store import get_pending, mark_done, mark_in_progress
 from .topics import pick_topic
-from .ui import c, fail, log, ok, section, spin, warn
+from .ui import c, emit, fail, log, ok, section, spin, warn
 from .video import assemble_video
 from .youtube import upload_to_youtube
 
@@ -69,6 +69,7 @@ def run_one(client, review=None):
         # 1. Pick topic
         topic = pick_topic(client)
         res["topic"] = topic["title"]
+        emit("topic", title=topic["title"])
         if topic["status"] != "manual":
             mark_in_progress(topic)
 
@@ -94,6 +95,7 @@ def run_one(client, review=None):
                 lang_dir    = out_dir / code
                 lang_dir.mkdir(exist_ok=True)
             tag = f"[{LANGS[code][0]}] " if len(langs) > 1 else ""
+            emit("language", code=code, name=LANGS[code][0], many=len(langs) > 1)
             log(f"{tag}Building the {LANGS[code][0]} video", "cyan")
             audio_paths = generate_audio(client, lang_script, lang_dir)
             durations   = get_durations(audio_paths, lang_dir)
@@ -192,6 +194,39 @@ def print_batch_summary(results, seconds):
     print(c("═"*60, "bold"))
     print()
 
+def run_batch(client, count, review=None):
+    """Make `count` videos one after another with the current CFG. Returns the list of result dicts.
+    Used by the terminal (review=None) and by the web app (review = the pause-before-upload callback)."""
+    voices     = shuffled_voices(count) if ((count > 1 or CFG.get("force_shuffle")) and CFG["batch_voice"] == "shuffle") else None
+    base_voice = CFG["tts_voice"]
+    results, t0 = [], time.time()
+    for n in range(1, count + 1):
+        if pushed_today() >= DAILY_LIMIT:
+            warn(f"I can't create more than {DAILY_LIMIT} videos a day: today's limit is reached. Stopping here.")
+            break
+        if voices:
+            CFG["tts_voice"] = voices[n - 1]
+        if count > 1:
+            print()
+            print(c("█"*60, "cyan"))
+            print(c(f"  VIDEO {n} of {count}   ·   narrator: {CFG['tts_voice']}", "bold"))
+            print(c("█"*60, "cyan"))
+        emit("video", index=n, count=count, voice=CFG["tts_voice"])
+        results.append(run_one(client, review))
+        results[-1]["voice"] = CFG["tts_voice"]
+        CFG["manual_topic"] = None            # a custom topic only ever applies to the first video
+        if results[-1]["abort"]:
+            warn("OpenAI credits exhausted — stopping the batch here")
+            break
+
+    CFG["tts_voice"] = base_voice
+    if count > 1:
+        print_batch_summary(results, time.time() - t0)
+    else:
+        print(f"  {c('Run again to build the next topic automatically.','dim')}")
+        print()
+    return results
+
 def main():
     argv = sys.argv[1:]
     if argv and argv[0] in ("web", "-web", "--web"):    # the local web app (see aieye/web/server.py)
@@ -241,33 +276,7 @@ def main():
         client = get_client()
     ok("OpenAI client ready")
 
-    voices     = shuffled_voices(count) if ((count > 1 or CFG.get("force_shuffle")) and CFG["batch_voice"] == "shuffle") else None
-    base_voice = CFG["tts_voice"]
-    results, t0 = [], time.time()
-    for n in range(1, count + 1):
-        if pushed_today() >= DAILY_LIMIT:
-            warn(f"I can't create more than {DAILY_LIMIT} videos a day: today's limit is reached. Stopping here.")
-            break
-        if voices:
-            CFG["tts_voice"] = voices[n - 1]
-        if count > 1:
-            print()
-            print(c("█"*60, "cyan"))
-            print(c(f"  VIDEO {n} of {count}   ·   narrator: {CFG['tts_voice']}", "bold"))
-            print(c("█"*60, "cyan"))
-        results.append(run_one(client))
-        results[-1]["voice"] = CFG["tts_voice"]
-        CFG["manual_topic"] = None            # a custom topic only ever applies to the first video
-        if results[-1]["abort"]:
-            warn("OpenAI credits exhausted — stopping the batch here")
-            break
-
-    CFG["tts_voice"] = base_voice
-    if count > 1:
-        print_batch_summary(results, time.time() - t0)
-    else:
-        print(f"  {c('Run again to build the next topic automatically.','dim')}")
-        print()
+    results = run_batch(client, count)
     if not all(r["ok"] for r in results):
         sys.exit(1)
 

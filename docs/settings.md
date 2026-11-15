@@ -15,6 +15,9 @@ Change a value and press **Save defaults**.
 | Narrator voice | `marin`, `cedar`, `nova`, `coral`, `sage`, `ash`, `ballad`, `verse`, `alloy`, `echo`, `fable`, `onyx`, `shimmer` |
 | Voices in a batch | `shuffle` (a different narrator per video) or `same` |
 
+**Review each video before it uploads** (web app) is saved with the defaults and pre-fills the [Create page](/docs/create). It is on
+unless you turn it off. The terminal ignores it and uploads straight away.
+
 !!! warning
     With privacy set to `public`, every finished video is published immediately, including all three in a batch. Use `private`
     until you trust the output, or `none` to review the files first.
