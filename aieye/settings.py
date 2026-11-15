@@ -180,12 +180,21 @@ def parse_run_flags(tokens):
         -trending   topic comes from what is trending on the web (queue/history not consulted)
         -top        topics from the top-performing categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
         -1 / -3     make 1 or 3 videos (no other number; never more than 3 a day)
+        -img [N] "prompt"  experiment: N (1-4) centre-focus 9:16 HD stills, saved in data/experiments/images (no video, no upload)
+        -vid [still.png] "motion"  experiment: image to video via OpenRouter (default Grok Lite, 720p, 5s); -model ID  -dur S  -res 480p|720p|1080p
+        -script "topic" [-notes file]  experiment: ONLY the script (reasoning models write, critique and fix it); saved for -film -resume
+        -film "topic"  experiment: the FULL pipeline with text-to-video (script, voice, clips, captions); -resume DIR reuses a saved script/clips
+                    -model grok | veo | veo-fast | seedance | kling | any OpenRouter id   -res R  -ambient  -qa (frame checks + redo, up to 3x clip cost)  -y
         -def        use saved defaults, no questions, narrator shuffled
         -custom ... your own topic (single video; -topic is the same)     -privacy P / -quality Q   per-run overrides"""
     import argparse
     ns = argparse.Namespace(languages=["en"], quick=False, batch=None, setup=False, yes=False, topic=None,
-                            privacy=None, quality=None, trending=False, top=False, use_def=False)
-    known = {"top", "trending", "trend", "def", "default", "defaults", "custom", "topic", "privacy", "quality", "y", "yes"}
+                            privacy=None, quality=None, trending=False, top=False, use_def=False,
+                            img=False, img_count=1, img_prompt=None,
+                            vid=False, vid_image=None, vid_prompt=None, model=None, dur=None, res=None,
+                            film=False, film_topic=None, ambient=False, resume=None,
+                            script=False, script_topic=None, notes=None, noqa=False, qa=False)
+    known = {"img", "vid", "film", "script", "notes", "noqa", "qa", "ambient", "resume", "model", "dur", "res", "top", "trending", "trend", "def", "default", "defaults", "custom", "topic", "privacy", "quality", "y", "yes"}
     from .languages import lang_code
     is_flag = lambda t: t.startswith("-") and (t.lstrip("-").lower() in known or t.lstrip("-").isdigit()
                                                or lang_code(t) is not None)
@@ -198,6 +207,36 @@ def parse_run_flags(tokens):
             ns.trending = True
         elif k == "top":
             ns.top = True
+        elif k == "img":                        # experiment: -img [N] "prompt"  (stills only, no video, no upload)
+            ns.img = True
+            if i < len(tokens) and tokens[i].isdigit():
+                ns.img_count = int(tokens[i]); i += 1
+            while i < len(tokens) and not is_flag(tokens[i]):
+                words.append(tokens[i]); i += 1
+        elif k == "vid":                        # experiment: -vid [still.png] "motion prompt" (image to video via OpenRouter)
+            ns.vid = True
+            while i < len(tokens) and not is_flag(tokens[i]):
+                words.append(tokens[i]); i += 1
+        elif k == "film":                       # experiment: -film "topic"  (whole pipeline, text-to-video)
+            ns.film = True
+            while i < len(tokens) and not is_flag(tokens[i]):
+                words.append(tokens[i]); i += 1
+        elif k == "script":                     # experiment: -script "topic" [-notes file]  (script only, no video)
+            ns.script = True
+            while i < len(tokens) and not is_flag(tokens[i]):
+                words.append(tokens[i]); i += 1
+        elif k == "notes":
+            ns.notes = tokens[i] if i < len(tokens) else None; i += 1
+        elif k == "noqa":
+            ns.noqa = True
+        elif k == "qa":                          # frame checks + redo of bad clips (costs up to 3x the clip price)
+            ns.qa = True
+        elif k == "ambient":
+            ns.ambient = True
+        elif k == "resume":
+            ns.resume = tokens[i] if i < len(tokens) else None; i += 1
+        elif k in ("model", "dur", "res"):
+            setattr(ns, k, tokens[i] if i < len(tokens) else None); i += 1
         elif k in ("def", "default", "defaults"):
             ns.use_def = True
         elif k.isdigit():
@@ -213,13 +252,32 @@ def parse_run_flags(tokens):
             setattr(ns, k, tokens[i] if i < len(tokens) else None); i += 1
         elif k in ("y", "yes"):
             ns.yes = True
-        elif custom:                            # anything else after -custom is part of the topic
+        elif custom or ns.img or ns.vid or ns.film or ns.script:  # anything else after -custom / -img / -vid is part of the topic / prompt
             words.append(t.lstrip("-"))
             while i < len(tokens) and not is_flag(tokens[i]):
                 words.append(tokens[i]); i += 1
         else:
             fail(f"Unknown option '{t}'.  Usage: aieye run [-trending|-top] [-N] [-def] [-custom your topic here]")
     ns.languages = list(dict.fromkeys(langs)) or ["en"]
+    if ns.img:
+        ns.img_prompt = " ".join(words).strip() or prompt_text("Describe the image")
+        ns.batch = None                         # experiment only: never counts as a video
+        return ns
+    if ns.script:
+        ns.script_topic = " ".join(words).strip() or (None if ns.resume else prompt_text("What should the script explain?"))
+        ns.batch = None                         # experiment only: never counts as a video
+        return ns
+    if ns.film:
+        ns.film_topic = " ".join(words).strip() or (None if ns.resume else prompt_text("What should the film explain?"))
+        ns.batch = None                         # experiment only: never counts as a video
+        return ns
+    if ns.vid:
+        import os
+        if words and os.path.splitext(words[0])[1].lower() in (".png", ".jpg", ".jpeg", ".webp"):
+            ns.vid_image = words.pop(0)         # optional first word: path to the still (default: newest -img still)
+        ns.vid_prompt = " ".join(words).strip() or prompt_text("Describe the motion")
+        ns.batch = None                         # experiment only: never counts as a video
+        return ns
     if custom:
         text = " ".join(words).strip()
         if text.lower().startswith("about "):
@@ -308,7 +366,12 @@ def setup_run(args):
             (f"Make {BATCH_DEFAULT} videos", "batch", f"{describe(saved, batch=True)}  ·  ~${per*BATCH_DEFAULT:.2f}"),
             ("Customize this run", "custom", "Pick a topic and settings just for this run"),
             ("Change saved defaults", "defaults", "Edit and save the settings used by the options above"),
+            ("Make an AI video", "studio", "pick Grok Imagine or Veo, get a complete video"),
         ])
+        if mode == "studio":
+            from .menu import main_menu
+            main_menu()
+            sys.exit(0)
         if mode == "defaults":
             prompt_settings(ask_topic=False)
             save_defaults()

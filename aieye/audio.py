@@ -18,13 +18,15 @@ def speechify(text):
     t = re.sub(r",\s*,", ",", t)
     return t.strip()
 
+NARRATION_SPEED = 1.10      # pitch-preserving speed-up of every narration line (captions are timed from the final audio)
+
 def polish_audio(raw, out):
     """Trim dead air at both ends, gentle compression, tiny pad so scene cuts breathe."""
     sil = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.04"
     run_cmd([
         FFMPEG, "-y", "-i", str(raw),
         "-af", f"{sil},areverse,{sil},areverse,"
-               "highpass=f=70,acompressor=threshold=-20dB:ratio=2.5:attack=5:release=80,"
+               f"atempo={NARRATION_SPEED},highpass=f=70,acompressor=threshold=-20dB:ratio=2.5:attack=5:release=80,"
                "afade=t=in:d=0.01,apad=pad_dur=0.12",
         "-ar", "48000", "-ac", "1", str(out),
     ], label="audio polish")

@@ -1,4 +1,4 @@
-import sys, time, json, shutil
+import os, sys, time, json, shutil
 from datetime import datetime
 from . import costs
 from .audio import generate_audio, get_durations
@@ -16,6 +16,9 @@ from .video import assemble_video
 from .youtube import upload_to_youtube
 
 # CLEANUP
+
+MODEL_ALIASES = {"grok": "x-ai/grok-imagine-video-1.5-lite", "veo": "google/veo-3.1-lite", "veo-fast": "google/veo-3.1-fast",
+                 "seedance": "bytedance/seedance-2.0-fast", "kling": "kwaivgi/kling-v3.0-std"}
 
 def keep_only_final(out_dir):
     """Not uploaded (yet): drop the intermediates but keep short.mp4 + youtube_metadata.json."""
@@ -175,7 +178,32 @@ def print_batch_summary(results, seconds):
     print()
 
 def main():
+    argv = sys.argv[1:]
+    if argv == ["menu"]:                        # straight into the AI video studio (also reachable from the main menu)
+        from .menu import main_menu
+        main_menu()
+        return
     args  = get_args()
+    if getattr(args, "img", False):             # experiment mode: stills only; no queue, no daily limit, no upload
+        from .imgexp import run_image_experiment
+        client = get_client()
+        run_image_experiment(client, args.img_prompt, args.img_count, args.quality or "high")
+        return
+    if getattr(args, "script", False):          # experiment mode: the script only; no video, no audio, no upload
+        from .scriptlab import make_script
+        make_script(get_client(), args.script_topic, args.notes, resume=args.resume)
+        return
+    if getattr(args, "film", False):            # experiment mode: whole pipeline with text-to-video; nothing is uploaded
+        from .film import run_film
+        from .videxp import DEFAULT_MODEL, DEFAULT_RES
+        run_film(get_client(), args.film_topic, MODEL_ALIASES.get((args.model or "").lower(), args.model) or DEFAULT_MODEL, args.res or DEFAULT_RES,
+                 yes=args.yes, ambient=args.ambient, resume=args.resume, notes=args.notes, qa=args.qa and not args.noqa)
+        return
+    if getattr(args, "vid", False):             # experiment mode: one clip from a still; no queue, no daily limit, no upload
+        from .videxp import DEFAULT_MODEL, DEFAULT_RES, DEFAULT_DUR, run_video_experiment
+        run_video_experiment(args.vid_prompt, args.vid_image, args.model or DEFAULT_MODEL,
+                             args.res or DEFAULT_RES, args.dur or DEFAULT_DUR, yes=args.yes)
+        return
     count = setup_run(args)
 
     DB_DIR.mkdir(exist_ok=True)

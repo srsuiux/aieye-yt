@@ -78,6 +78,13 @@ Only needed if you want the pipeline to upload. Without it, choose **Don't uploa
 aieye run -trending -1 -def   # 1 video, topic from what is trending on the web, saved defaults, random narrator
 aieye run -top -3 -def        # 3 videos from the top categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
 aieye run -3 -def             # 3 videos from the queue, saved defaults, shuffled narrators
+aieye run -img 1 "a red fox in fresh snow"   # EXPERIMENT: 1 high-definition, centre-focus 9:16 still (1-4 allowed)
+                                              # saved in data/experiments/images/ (+ raw original and a .json with prompt and cost);
+                                              # no video, no upload, not counted in the daily limit; quality defaults to high
+aieye run -vid "slow push-in, the fox turns its head"   # EXPERIMENT: turn the newest -img still into a 5 s clip (OpenRouter)
+                                              # default model Grok Imagine Video 1.5 Lite, 720p, 9:16; -model ID  -dur S  -res R  -y
+                                              # saves the clip, its LAST FRAME (start of the next clip) and the real cost in data/experiments/videos/
+                                              # needs OPENROUTER_API_KEY in .env; `aieye models` lists models and live prices
 aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
 aieye setup                   # choose and save defaults
