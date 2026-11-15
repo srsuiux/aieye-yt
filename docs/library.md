@@ -33,3 +33,14 @@ The most recent uploaded videos, with a link, the time and what they cost.
 ## Recent runs
 
 The last few runs with their status (done, failed, cancelled). Open one to see its steps and details. AI Eye keeps the 20 most recent.
+
+## Deleting videos from this computer
+
+Videos waiting in the Library are files on your computer, and you can remove them.
+
+- **One video:** press **Delete video** on it.
+- **Several:** tick the boxes (or **Select all**), then press **Delete selected**.
+- **Everything:** press **Delete all**. You must type `delete` to confirm.
+
+Each delete asks you to confirm in a window that says how many videos and how many MB will go. Deleting cannot be undone. It
+only removes files from this computer: videos already on YouTube are not touched, and your history and topics are kept.

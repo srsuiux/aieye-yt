@@ -248,3 +248,13 @@ a.tool h2 { margin-top: 0; }
 .foot a { color: var(--muted); } .foot a:hover { color: var(--text); }
 .legal-note { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 13px; line-height: 1.5; max-width: 70ch; }
 .legal-note strong { color: var(--text); } .legal-note a { text-decoration: underline; }
+
+/* Library: select and delete */
+.bulk { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r); }
+.bulk .grow { flex: 1; }
+.pick-box { position: absolute; margin: 8px; z-index: 1; } .kept-item { position: relative; }
+.pick-box input { width: 18px; height: 18px; }
+dialog { border: 1px solid var(--line); border-radius: 16px; padding: 22px; background: var(--panel); color: var(--text); max-width: min(440px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0,0,0,.55); }
+dialog h2 { margin: 0 0 8px; } dialog .actions { margin-top: 14px; }
+.btn.danger-solid { background: var(--danger); color: #fff; border-color: var(--danger); } .btn.danger-solid:disabled { opacity: .45; }

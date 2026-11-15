@@ -257,12 +257,26 @@ def create_app(token=None, bind_host="127.0.0.1"):
 
     @app.post("/api/library/delete")
     async def api_library_delete(request: Request):
+        """Delete kept videos: {"id": one} or {"ids": [...]} or {"all": true}. Only videos listed in the Library can be deleted."""
         body = await request.json()
-        try:
-            shutil.rmtree(kept_folder(body.get("id", "")), ignore_errors=True)
-        except HTTPException as e:
-            return bad(e.detail, 404)
-        return {"ok": True}
+        listed = {v["id"]: v for v in library_items()}
+        if body.get("all"):
+            ids = list(listed)
+        else:
+            ids = [body["id"]] if body.get("id") else list(body.get("ids") or [])
+        if not ids or len(ids) > 1000 or not all(isinstance(i, str) for i in ids):
+            return bad("Choose at least one video to delete.")
+        gone, freed = 0, 0.0
+        for i in dict.fromkeys(ids):
+            if i not in listed:                        # already gone, or still being made: leave it alone
+                continue
+            try:
+                shutil.rmtree(kept_folder(i))
+                gone += 1
+                freed += listed[i]["size"]
+            except (HTTPException, OSError):
+                continue
+        return {"ok": True, "deleted": gone, "freed_mb": round(freed, 1)}
 
     # ── Jobs API ──────────────────────────────────────────────────────────────────────────────────────────────
     @app.post("/api/jobs")

@@ -10,9 +10,17 @@
   {% if kept %}{{ before_publish() }}{% endif %}
   <h2 class="section-title">Waiting to upload <span class="muted">({{ kept | length }})</span></h2>
   {% if kept %}
+  <div class="bulk" id="bulk">
+    <label class="inline"><input type="checkbox" id="sel-all"> Select all</label>
+    <span class="muted small" id="sel-count">None selected</span>
+    <span class="grow"></span>
+    <button class="btn ghost danger" type="button" id="del-selected" disabled>Delete selected</button>
+    <button class="btn ghost danger" type="button" id="del-all" data-count="{{ kept | length }}" data-mb="{{ '%.0f' | format(kept | sum(attribute='size')) }}">Delete all ({{ kept | length }})</button>
+  </div>
   <div class="kept">
     {% for v in kept %}
-    <article class="panel kept-item" data-id="{{ v.id }}" data-privacy="private">
+    <article class="panel kept-item" data-id="{{ v.id }}" data-size="{{ v.size }}" data-privacy="private">
+      <label class="pick-box"><input type="checkbox" class="k-sel" aria-label="Select {{ v.meta.title }}"></label>
       <video controls preload="none" playsinline src="/library/video/{{ v.id }}"></video>
       <div class="fields">
         <div class="field"><label>Title</label><input type="text" class="k-title" maxlength="100" value="{{ v.meta.title }}"></div>
@@ -49,5 +57,15 @@
   <ul class="plain">{% for r in recent %}<li><a href="{{ base }}/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else ('Studio ' ~ r.params.tool if r.kind == 'studio' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else ''))) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
   {% else %}<p class="muted">No runs yet.</p>{% endif %}
 </div>
+<dialog id="del-dialog" aria-labelledby="del-title">
+  <form method="dialog">
+    <h2 id="del-title">Delete videos?</h2>
+    <p id="del-text"></p>
+    <p class="muted small">This removes the files from this computer and cannot be undone. Nothing on YouTube is touched.</p>
+    <div class="field" id="del-type" hidden><label for="del-word">Type <strong>delete</strong> to confirm</label><input id="del-word" type="text" autocomplete="off"></div>
+    <div class="actions"><button class="btn ghost" value="cancel" id="del-cancel" autofocus>Cancel</button><button class="btn danger-solid" type="button" id="del-go">Delete</button></div>
+    <p class="note bad" id="del-note"></p>
+  </form>
+</dialog>
 {% endblock %}
 {% block scripts %}<script src="/static/library.js"></script>{% endblock %}
