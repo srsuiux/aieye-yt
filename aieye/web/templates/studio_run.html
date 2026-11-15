@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page" id="srun" data-id="{{ st.id }}" data-tool="{{ st.params.tool }}">
+  <p class="crumbs"><a href="{{ base }}/studio">Studio</a> <span aria-hidden="true">/</span> Run</p>
+  <div class="run-head"><h1 id="run-title">Working on it</h1><em class="beta">Beta</em><span class="status" id="run-status">Starting</span></div>
+  <p class="muted">{{ st.params.prompt or st.params.topic }}</p>
+  <div class="bar big-bar" role="progressbar" aria-label="Working"><i id="bar" style="width:100%" class="pulse"></i></div>
+  <p class="muted" id="now">Starting…</p>
+  <div class="run-meta"><span>Cost so far <strong id="cost">$0.0000</strong></span><span id="clock">0:00</span>
+    <button class="btn ghost danger" id="cancel" type="button">Cancel run</button></div>
+  <section class="panel" id="result" hidden><h2 id="result-title"></h2><div class="gallery" id="files"></div><p class="note bad" id="err"></p>
+    <p class="actions"><a class="btn" href="{{ base }}/studio/{{ st.params.tool }}">Make another</a> <a class="btn ghost" href="{{ base }}/studio">Back to Studio</a></p></section>
+  <details class="panel logbox" id="logbox"><summary>Details</summary><pre id="log" aria-live="off"></pre></details>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/studio_run.js"></script>{% endblock %}

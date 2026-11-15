@@ -1,5 +1,5 @@
 """Running API cost of the video currently being built."""
-from .ui import log
+from .ui import emit, log
 
 _total = 0.0
 
@@ -14,3 +14,4 @@ def track(label, amount):
     global _total
     _total += amount
     log(f"💰  [{label}] ${amount:.4f}  |  total: ${_total:.4f}", "yellow")
+    emit("cost", label=label, amount=amount, total=_total)

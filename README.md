@@ -20,10 +20,16 @@ python3 aieye-cli.py --quick                        # make 1 video
 
 Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
 
-**Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) ·
+**Web app:** `aieye web` opens the same tool in your browser (local only by default). Chat with the **Assistant** (Iris, beta) to
+plan and make videos, or use the pages: create videos and watch them being made (with an optional review step before upload),
+manage topics, channel details, defaults and advanced settings (models, scenes, caption look), keep, upload or delete finished
+videos, try AI-video experiments in **Studio** (beta), save API keys and the YouTube sign-in, and read the docs. See
+[The web app](#the-web-app). The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
+
+**Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) · [The web app](#the-web-app) ·
 [The `aieye` command](#the-aieye-command) · [Experiments](#experiments-optional-not-part-of-the-daily-pipeline) · [Usage](#usage) ·
 [Settings](#settings) · [Output & data](#output--data) · [Cost](#cost) · [Customising](#customising) ·
-[Troubleshooting](#troubleshooting) · [Design notes](#design-notes) · [Project layout](#project-layout)
+[Troubleshooting](#troubleshooting) · [Design notes](#design-notes) · [Security](#security) · [Project layout](#project-layout) · [License and legal](#license-and-legal)
 
 ---
 
@@ -63,7 +69,8 @@ A ~45–55 second vertical video (1080×1920, 30 fps, H.264 + AAC) with:
 - **`ffprobe`** on your PATH (comes with a normal ffmpeg install, e.g. `brew install ffmpeg`).
   The `ffmpeg` used for rendering is the newer 7.x build bundled with `imageio-ffmpeg`; the pipeline uses it automatically and falls back to the system `ffmpeg`.
 - *(Optional, for uploading)* a Google Cloud OAuth client — see [YouTube setup](#youtube-setup)
-- *(Optional, experiments only)* an OpenRouter API key for `-vid`, `-film` and `aieye menu`
+- *(Optional, experiments only)* an OpenRouter API key for `-vid`, `-film`, `aieye menu` and Studio's Clip and Film tools
+- The web app's packages (FastAPI, uvicorn, Jinja2, markdown) are in `requirements.txt`
 - *(Recommended)* `torch` + `torchaudio` for accurate caption timing. Without them captions still work using a less accurate estimate.
 
 ## Setup
@@ -105,6 +112,39 @@ Only needed if you want the pipeline to upload. Without it, choose **Don't uploa
 3. Run a video with uploading on. A browser window opens once to authorise; the login is stored in `data/credentials/youtube_token.pickle`.
    If it ever expires, the pipeline re-opens the browser automatically.
 
+## The web app
+
+```bash
+aieye web                 # http://localhost:8420, opens your browser (local only)
+aieye web --port 9000     # another port
+aieye web --no-open       # do not open the browser
+aieye web --host 0.0.0.0  # reachable from your network, with an access token (trusted networks only)
+```
+
+Everything the terminal does is also here, with the same pipeline, settings and files. A video started in one shows up in the other.
+Pages live under your channel handle, like YouTube: `http://localhost:8420/@YourHandle/create`. Until you set the handle on the
+Channel page they live under `/new`; old addresses redirect.
+
+| Page | What it is for |
+|---|---|
+| **Home** | Videos pushed today out of your daily limit, a setup checklist, recent videos with their YouTube thumbnails |
+| **Assistant** (beta) | Chat with Iris: describe a video, watch it work step by step, then press a button to make or upload it. It cannot spend money or publish on its own |
+| **Create** | Topic, languages, look and upload choice with a cost estimate; confirm, watch the run live, review before upload |
+| **Library** | Videos not uploaded yet (preview, edit, upload, delete one, several or all), uploaded videos, recent runs |
+| **Studio** (beta) | AI-video experiments: Stills, Clip, Script, Film. Live model prices, a spend confirmation, a results gallery |
+| **Topics** | The queue: add, reorder, remove, history |
+| **Channel** | Handle, description, tags and the audience notes used for topic ideas |
+| **Settings** | Defaults for new videos, and Advanced: models (menus showing provider, tags, price and the recommended default), scenes, caption look, daily limit |
+| **Connections** | Save OpenAI and OpenRouter keys (only the last 4 characters are ever shown), add the YouTube client file, sign in |
+| **Docs** | These guides, plus Privacy, Terms, Copyright and licenses |
+
+A first-run **welcome tour** explains each page (skip it any time; reopen it with the **?** button). Short notices appear where they
+matter: what a button spends, where your text is sent, and a reminder to check facts and label realistic AI content before publishing.
+
+**Safety:** the app listens only on `localhost`, refuses requests from other websites, never shows a full key, and always asks
+before spending (a button on the Create page, each Studio tool and each Assistant card). `AIEYE_DATA_DIR` and `AIEYE_ENV_FILE`
+let you keep your data somewhere else.
+
 ## The `aieye` command
 
 `start-script.sh` is the single launcher; it is symlinked to `~/.local/bin/aieye`
@@ -119,6 +159,7 @@ aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
 aieye setup                   # choose and save defaults
 aieye trends                  # just list what is trending (free)
+aieye web                     # the web app (local only; --port N, --no-open, --host to share with a token)
 aieye models                  # list image-to-video models and live prices (free; experiments)
 aieye menu                    # AI video studio (experiments; spends OpenRouter credit)
 aieye                         # interactive menu
@@ -138,7 +179,7 @@ Hindi captions are shaped with macOS CoreText (Pillow can't shape Devanagari wit
 
 ### Experiments (optional, not part of the daily pipeline)
 
-Side tools for trying AI video. They never touch the topic queue, the 3-a-day limit or YouTube, and nothing is uploaded.
+Side tools for trying AI video. They never touch the topic queue, the daily upload limit or YouTube, and nothing is uploaded.
 All output goes to `data/experiments/` (git-ignored). The video modes need `OPENROUTER_API_KEY` in `.env`
 (key from [openrouter.ai/keys](https://openrouter.ai/keys)); `-img` and `-script` only need your OpenAI key.
 **None of the video models are free**: each command shows a price first, and `-y` skips that pause, so use it with care.
@@ -192,7 +233,7 @@ python3 aieye-cli.py --setup               # choose and save defaults, then exit
 | Flag | Meaning |
 |---|---|
 | `--quick` | Make 1 video with your saved defaults, no questions |
-| `--batch 1\|3` | Make 1 or 3 videos with your saved defaults. **Hard limit: 3 videos a day**; asking for more is refused |
+| `--batch 1\|3` | Make 1 or 3 videos with your saved defaults. **Daily limit: 3 videos pushed to YouTube** (change it in Settings > Advanced > Limits); asking for more is refused |
 | `--setup` | Choose and save default settings, then exit |
 | `--topic "…"` | Custom topic (single video only) |
 | `--privacy {public,private,unlisted,none}` | Override the saved privacy for this run |
@@ -267,7 +308,7 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 | Pictures per scene (1 = old behaviour, cheapest) / shortest allowed shot | `MAX_SHOTS`, `MIN_SHOT_WORDS` |
 | Scenes whose images generate at once (lower if you hit rate limits) | `IMAGE_WORKERS` |
 | Crossfade length between pictures | `SHOT_XFADE` |
-| Models | `GPT_MODEL`, `TTS_MODEL`, `IMAGE_MODEL` |
+| Models | Settings page > Advanced (saved in `data/config.json`); defaults in `aieye/tuning.py` |
 | Narrator direction (tone, pacing) | `TTS_STYLE` |
 | Voices used when shuffling | `VOICE_POOL` |
 | Zoom strength | `MOTION` = `"low"` · `"medium"` · `"high"` |
@@ -311,7 +352,8 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 ## Security
 
 Never share or commit: `.env` (OpenAI and OpenRouter keys), `data/credentials/` (YouTube access).
-All three, plus outputs and settings, are listed in `.gitignore`. If a key is ever exposed (in a log, screenshot or chat), rotate it in the provider's dashboard.
+Both, plus outputs, chats and settings, are listed in `.gitignore`. If a key is ever exposed (in a log, screenshot or chat), rotate it in the provider's dashboard.
+To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Project layout
 
@@ -332,12 +374,30 @@ aieye/                      the pipeline, one module per step
     video.py                  step 4  render + assemble
     ffmpeg.py                 ffmpeg lookup / runner
     youtube.py                step 5  upload
-    pipeline.py               run_one / main, cleanup after posting
+    pipeline.py               run_one / run_batch / main, cleanup after posting
+    assistant.py              the chat assistant's brain: a tool-calling loop; can propose, never spend or publish
+    envfile.py                the .env key store (masked status, save, remove, test)
+    limits.py                 the daily upload limit
+    languages.py              supported narration and caption languages
+    trending.py               topics from Google Trends and Wikipedia
+    dedupe.py                 keeps new topics from repeating old ones
+    webjob.py                 one web-app run in its own process: events, review pause, upload, Studio experiments
+    tuning.py                 advanced settings: defaults, limits, validation (your changes: data/config.json)
     imgexp.py                 experiment  -img   stills
     videxp.py                 experiment  -vid   image-to-video via OpenRouter, model list and prices
     scriptlab.py              experiment  -script   research, draft, critic, revise
     film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
     menu.py                   experiment  menu   guided AI video studio
+aieye/web/                  the web app
+    server.py                 routes, the localhost guard, /@handle addresses
+    jobs.py, library.py       starting, watching and cancelling runs; videos waiting to upload
+    chat.py                   assistant conversations (data/chat/), steps and cards, run in a background thread
+    studio.py                 Studio tools: live prices, validation, results
+    data.py, connections.py   settings, channel, topics, first-run state; keys and YouTube sign-in
+    docs.py                   serves docs/ as pages
+    templates/, static/       pages, styles and scripts
+docs/                       documentation as Markdown (docs/nav.json = order); served at /docs by the web app
+LICENSE, SECURITY.md, CONTRIBUTING.md   MIT license, how to report a problem, how to contribute
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)
 requirements.txt            dependencies
@@ -345,5 +405,16 @@ requirements.txt            dependencies
 assets/voice_samples/       optional narrator samples      (git-ignored)
 assets/channel/             channel branding assets        (git-ignored)
 data/                       everything generated/personal  (git-ignored)
-    settings.json, db/, output/, credentials/, experiments/
+    settings.json, config.json, channel.json, ui.json
+    db/ (topic queue + history), output/ (videos), credentials/, experiments/, jobs/ (web runs), chat/ (assistant chats)
 ```
+
+---
+
+## License and legal
+
+AI Eye is released under the [MIT License](LICENSE): free to use, change and share, with no warranty. It runs on your own computer
+with your own keys; nothing is sent to the authors. Read [Privacy](docs/privacy.md), [Terms of use](docs/terms.md),
+[Copyright and content](docs/copyright.md) and [Third-party software](docs/third-party.md) (also in the app under Docs), and
+[SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md). You are responsible for the videos you publish and for following
+the terms of OpenAI, Google and YouTube. AI Eye is not affiliated with or endorsed by them.

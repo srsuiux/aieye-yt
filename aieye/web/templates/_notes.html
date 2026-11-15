@@ -1,0 +1,14 @@
+{# Short notices shown where a user decides something. Full text: Docs > Legal. #}
+{% macro before_publish() -%}
+<p class="legal-note"><strong>Before you publish:</strong> the script and pictures are made by AI and can be wrong, so check the facts.
+  YouTube asks you to label realistic AI-made content; AI Eye does not set that label, so set it in YouTube Studio if it applies.
+  You are responsible for what you publish. <a href="{{ base }}/docs/copyright">Copyright and content</a></p>
+{%- endmacro %}
+{% macro spends_money() -%}
+<p class="legal-note"><strong>This spends real money</strong> on your own accounts. The figure is an estimate; only the provider's bill is exact.
+  <a href="{{ base }}/docs/terms">Terms of use</a></p>
+{%- endmacro %}
+{% macro sent_to(who) -%}
+<p class="legal-note">What you type here is sent to {{ who }} to make the result, under their terms and privacy policy. AI Eye itself keeps everything on this computer.
+  <a href="{{ base }}/docs/privacy">Privacy</a></p>
+{%- endmacro %}

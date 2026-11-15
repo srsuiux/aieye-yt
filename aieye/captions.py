@@ -1,6 +1,7 @@
 import re, subprocess
 from pathlib import Path
 from .ffmpeg import FFMPEG
+from .tuning import tune
 from .ui import warn
 
 # CAPTIONS — word alignment + rendered highlight cards
@@ -12,13 +13,13 @@ CAPTION_FONTS = [
     "/System/Library/Fonts/Supplemental/Impact.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
 ]
-CAPTION_STYLE     = "plate"     # "plate" = highlighted word on a coloured plate, "text" = coloured word
-CAPTION_ACCENT    = "#FFD93B"
-CAPTION_COLOR_MODE = "shuffle"  # "shuffle" = a different highlight colour on each caption card, "fixed" = CAPTION_ACCENT
+CAPTION_STYLE     = tune("CAPTION_STYLE")     # "plate" = highlighted word on a coloured plate, "text" = coloured word
+CAPTION_ACCENT    = tune("CAPTION_ACCENT")
+CAPTION_COLOR_MODE = tune("CAPTION_COLOR_MODE")  # "shuffle" = a different highlight colour on each caption card, "fixed" = CAPTION_ACCENT
 CAPTION_PALETTE   = ["#FFD93B", "#5CF28E", "#4FD8FF", "#FF6FB5", "#FF9A3C", "#B69CFF"]  # yellow, green, cyan, pink, orange, lilac
 CAPTION_LEAD_CARD = 0.10        # seconds a new caption card appears before its first word is spoken
 CAPTION_LEAD_WORD = 0.04        # seconds the highlight moves onto a word before it is spoken
-CAPTION_MAX_WORDS = 5
+CAPTION_MAX_WORDS = tune("CAPTION_MAX_WORDS")
 CAPTION_MAX_CHARS = 32
 CAPTION_MAX_W     = 940         # px, inside the 1080 frame (Shorts side buttons live on the right)
 CAPTION_CANVAS    = (1080, 400)

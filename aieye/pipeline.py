@@ -11,7 +11,7 @@ from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
 from .store import get_pending, mark_done, mark_in_progress
 from .topics import pick_topic
-from .ui import c, log, ok, section, spin, warn
+from .ui import c, emit, fail, log, ok, section, spin, warn
 from .video import assemble_video
 from .youtube import upload_to_youtube
 
@@ -55,8 +55,12 @@ def print_upload_metadata(meta):
     print(c("─"*60, "cyan"))
     print()
 
-def run_one(client):
-    """Build (and upload) one video. Never raises: returns a result dict so a batch can carry on."""
+def run_one(client, review=None):
+    """Build (and upload) one video. Never raises: returns a result dict so a batch can carry on.
+
+    review: optional callback(info) used by the web app to pause before each upload. info has "lang", "video_path",
+    "meta" (title, description, tags, privacy) and "title". It returns {"action": "upload", "meta": {...edited...}}
+    or {"action": "skip"}. Without it (the terminal) videos upload straight away, as before."""
     costs.reset()
     t0  = time.time()
     res = {"ok": False, "title": None, "topic": None, "url": None, "path": None,
@@ -65,6 +69,7 @@ def run_one(client):
         # 1. Pick topic
         topic = pick_topic(client)
         res["topic"] = topic["title"]
+        emit("topic", title=topic["title"])
         if topic["status"] != "manual":
             mark_in_progress(topic)
 
@@ -90,6 +95,7 @@ def run_one(client):
                 lang_dir    = out_dir / code
                 lang_dir.mkdir(exist_ok=True)
             tag = f"[{LANGS[code][0]}] " if len(langs) > 1 else ""
+            emit("language", code=code, name=LANGS[code][0], many=len(langs) > 1)
             log(f"{tag}Building the {LANGS[code][0]} video", "cyan")
             audio_paths = generate_audio(client, lang_script, lang_dir)
             durations   = get_durations(audio_paths, lang_dir)
@@ -108,7 +114,18 @@ def run_one(client):
             # 4. Upload (a failed upload keeps the rendered video and does not stop the others)
             video_id = None
             try:
-                video_id = upload_to_youtube(video_path, meta)
+                if review and CFG.get("upload_privacy") != "none":
+                    decision = review({"lang": code, "video_path": str(video_path), "title": meta["title"],
+                                       "meta": {**meta, "tags": CHANNEL["tags"], "privacy": CFG["upload_privacy"]}})
+                    if (decision or {}).get("action") == "upload":
+                        meta = {**meta, **decision.get("meta", {})}
+                        with open(lang_dir / "youtube_metadata.json", "w") as f:
+                            json.dump(meta, f, indent=2, ensure_ascii=False)
+                        video_id = upload_to_youtube(video_path, meta)
+                    else:
+                        log(f"{tag}Upload skipped after review — video kept locally", "yellow")
+                else:
+                    video_id = upload_to_youtube(video_path, meta)
             except Exception as e:
                 warn(f"{tag}Upload failed: {str(e)[:200]}")
                 res["error"] = f"upload failed ({code}): {str(e)[:100]}"
@@ -177,8 +194,54 @@ def print_batch_summary(results, seconds):
     print(c("═"*60, "bold"))
     print()
 
+def run_batch(client, count, review=None):
+    """Make `count` videos one after another with the current CFG. Returns the list of result dicts.
+    Used by the terminal (review=None) and by the web app (review = the pause-before-upload callback)."""
+    voices     = shuffled_voices(count) if ((count > 1 or CFG.get("force_shuffle")) and CFG["batch_voice"] == "shuffle") else None
+    base_voice = CFG["tts_voice"]
+    results, t0 = [], time.time()
+    for n in range(1, count + 1):
+        if pushed_today() >= DAILY_LIMIT:
+            warn(f"I can't create more than {DAILY_LIMIT} videos a day: today's limit is reached. Stopping here.")
+            break
+        if voices:
+            CFG["tts_voice"] = voices[n - 1]
+        if count > 1:
+            print()
+            print(c("█"*60, "cyan"))
+            print(c(f"  VIDEO {n} of {count}   ·   narrator: {CFG['tts_voice']}", "bold"))
+            print(c("█"*60, "cyan"))
+        emit("video", index=n, count=count, voice=CFG["tts_voice"])
+        results.append(run_one(client, review))
+        results[-1]["voice"] = CFG["tts_voice"]
+        CFG["manual_topic"] = None            # a custom topic only ever applies to the first video
+        if results[-1]["abort"]:
+            warn("OpenAI credits exhausted — stopping the batch here")
+            break
+
+    CFG["tts_voice"] = base_voice
+    if count > 1:
+        print_batch_summary(results, time.time() - t0)
+    else:
+        print(f"  {c('Run again to build the next topic automatically.','dim')}")
+        print()
+    return results
+
 def main():
     argv = sys.argv[1:]
+    if argv and argv[0] in ("web", "-web", "--web"):    # the local web app (see aieye/web/server.py)
+        import argparse
+        ap = argparse.ArgumentParser(prog="aieye web", description="AI Eye web app")
+        ap.add_argument("--host", default="127.0.0.1", help="address to listen on (default: this computer only)")
+        ap.add_argument("--port", type=int, default=8420)
+        ap.add_argument("--no-open", action="store_true", help="do not open the browser")
+        a = ap.parse_args(argv[1:])
+        try:
+            from .web.server import run
+        except ImportError:
+            fail("The web app needs: pip install fastapi uvicorn jinja2 markdown")
+        run(a.host, a.port, open_browser=not a.no_open)
+        return
     if argv == ["menu"]:                        # straight into the AI video studio (also reachable from the main menu)
         from .menu import main_menu
         main_menu()
@@ -213,33 +276,7 @@ def main():
         client = get_client()
     ok("OpenAI client ready")
 
-    voices     = shuffled_voices(count) if ((count > 1 or CFG.get("force_shuffle")) and CFG["batch_voice"] == "shuffle") else None
-    base_voice = CFG["tts_voice"]
-    results, t0 = [], time.time()
-    for n in range(1, count + 1):
-        if pushed_today() >= DAILY_LIMIT:
-            warn(f"I can't create more than {DAILY_LIMIT} videos a day: today's limit is reached. Stopping here.")
-            break
-        if voices:
-            CFG["tts_voice"] = voices[n - 1]
-        if count > 1:
-            print()
-            print(c("█"*60, "cyan"))
-            print(c(f"  VIDEO {n} of {count}   ·   narrator: {CFG['tts_voice']}", "bold"))
-            print(c("█"*60, "cyan"))
-        results.append(run_one(client))
-        results[-1]["voice"] = CFG["tts_voice"]
-        CFG["manual_topic"] = None            # a custom topic only ever applies to the first video
-        if results[-1]["abort"]:
-            warn("OpenAI credits exhausted — stopping the batch here")
-            break
-
-    CFG["tts_voice"] = base_voice
-    if count > 1:
-        print_batch_summary(results, time.time() - t0)
-    else:
-        print(f"  {c('Run again to build the next topic automatically.','dim')}")
-        print()
+    results = run_batch(client, count)
     if not all(r["ok"] for r in results):
         sys.exit(1)
 

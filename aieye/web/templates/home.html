@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Home</h1>
+  {% if not checklist[0].done %}
+  <section class="panel welcome">
+    <h2>Welcome to AI Eye</h2>
+    <p class="muted">It turns a topic into a finished YouTube Short: script, narration, pictures and captions. Start by adding your OpenAI key, which pays for the script, voice and pictures. YouTube is optional and can wait.</p>
+    <p class="legal-note">AI Eye is free, open-source (MIT) software that runs on this computer with your own keys. It comes with no warranty. You pay your providers for what you make, and you are responsible for what you publish and for following the rules of OpenAI, Google and YouTube. <a href="{{ base }}/docs/terms">Terms</a> · <a href="{{ base }}/docs/privacy">Privacy</a> · <a href="{{ base }}/docs/copyright">Copyright</a></p>
+    <p><a class="btn" href="{{ base }}/connections">Add your OpenAI key</a> <button class="btn ghost" type="button" data-start-tour>Take the tour</button> <a class="btn ghost" href="{{ base }}/docs/install">Read the setup guide</a></p>
+  </section>
+  {% endif %}
+
+  <section class="panel usage">
+    <div class="usage-head">
+      <h2>Videos pushed to YouTube today</h2>
+      <p class="big">{{ used }} <span class="muted">of {{ limit }}</span></p>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ limit }}" aria-valuenow="{{ used }}"><i style="width: {{ (used / limit * 100) | round }}%"></i></div>
+    <p class="muted small">AI Eye never pushes more than {{ limit }} videos a day. {{ pending }} topic{{ '' if pending == 1 else 's' }} waiting in the queue.</p>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel">
+      <h2>Set up</h2>
+      <ul class="checklist">
+        {% for item in checklist %}
+        <li class="{{ 'done' if item.done else '' }}">
+          <span class="tick" aria-hidden="true">{{ '✓' if item.done else '' }}</span>
+          <div><a href="{{ base }}{{ item.href }}">{{ item.label }}</a><div class="muted small">{{ item.help }}</div></div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>Make a video</h2>
+      <p class="muted">Pick a topic, a language and a look, see the cost, then watch the video being made and review it before it uploads.</p>
+      <p><a class="btn" href="{{ base }}/create">Create a video</a> <a class="btn ghost" href="{{ base }}/library">Library</a></p>
+    </section>
+  </div>
+
+  <h2 class="section-title">Recent videos</h2>
+  {% if recent %}
+  <div class="cards">
+    {% for v in recent %}
+    <article class="vcard">
+      {% if v.link %}<a class="thumb" href="{{ v.link }}" target="_blank" rel="noopener" aria-label="Watch {{ v.title or v.topic }} on YouTube">{% else %}<div class="thumb">{% endif %}
+        {% if v.thumb %}<img src="{{ v.thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}<span>{{ v.title or v.topic }}</span>
+      {% if v.link %}</a>{% else %}</div>{% endif %}
+      <div class="meta">
+        <h3>{{ v.title or v.topic }}</h3>
+        <p class="muted small">{{ v.when }}{% if v.cost %} · ${{ '%.2f' | format(v.cost) }}{% endif %}</p>
+        {% if v.link %}<a class="small" href="{{ v.link }}" target="_blank" rel="noopener">Watch on YouTube</a>{% else %}<span class="muted small">Not uploaded</span>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then create your first video.</p><a class="btn" href="{{ base }}/connections">Open Connections</a> <a class="btn ghost" href="{{ base }}/create">Create a video</a></div>
+  {% endif %}
+</div>
+{% endblock %}

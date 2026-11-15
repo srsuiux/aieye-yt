@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
+{% block content %}
+<div class="page">
+  <h1>Connections</h1>
+  <p class="muted lead">Keys are saved in the <code>.env</code> file in your AI Eye folder and never leave this computer, except to call the service they belong to. This page only ever shows the last 4 characters.</p>
+
+  {% for k in keys %}
+  <section class="panel conn" data-key="{{ k.name }}">
+    <div class="conn-head">
+      <div>
+        <h2>{{ k.label.split(' (')[0] }}</h2>
+        <p class="muted small">{{ k.label.split(' (')[1].rstrip(')') if ' (' in k.label else '' }} · <code>{{ k.name }}</code></p>
+      </div>
+      <span class="status {{ 'ok' if k.set else 'off' }}" data-status>{{ 'Saved ' ~ k.hint if k.set else 'Not set' }}</span>
+    </div>
+    <form class="row" data-key-form>
+      <label class="sr" for="in-{{ k.name }}">{{ k.name }}</label>
+      <input id="in-{{ k.name }}" type="password" autocomplete="off" spellcheck="false" placeholder="{{ 'Paste a new key to replace it' if k.set else 'Paste your key' }}">
+      <button class="btn" type="submit">Save key</button>
+      <button class="btn ghost" type="button" data-test {{ '' if k.set else 'disabled' }}>Test</button>
+      <button class="btn ghost danger" type="button" data-remove {{ '' if k.set else 'disabled' }}>Remove</button>
+    </form>
+    <p class="note" data-note></p>
+    <p class="legal-note">{% if k.name == 'OPENAI_API_KEY' %}Sent only to OpenAI, and used for scripts, voice and pictures.{% else %}Sent only to OpenRouter, and used for Studio video clips.{% endif %}
+      Keep it secret: anyone who has it can spend your money. Set a spending limit in your {{ 'OpenAI' if k.name == 'OPENAI_API_KEY' else 'OpenRouter' }} account.</p>
+    <p class="small"><a href="{{ base }}/docs/{{ 'get-openai-key' if k.name == 'OPENAI_API_KEY' else 'get-openrouter-key' }}">How to get this key</a></p>
+  </section>
+  {% endfor %}
+
+  <section class="panel conn" id="youtube">
+    <div class="conn-head">
+      <div><h2>YouTube</h2><p class="muted small">Upload finished videos to your channel (optional)</p></div>
+      <span class="status {{ 'ok' if (yt.client_file and yt.signed_in) else 'off' }}" data-yt-status>
+        {% if yt.client_file and yt.signed_in %}Signed in{% elif yt.client_file %}Client file saved{% else %}Not set{% endif %}</span>
+    </div>
+    <ol class="steps">
+      <li><strong>Add the client file.</strong> The OAuth JSON you download from Google Cloud.
+        <div class="row"><input type="file" id="yt-file" accept="application/json,.json"><button class="btn" id="yt-save" disabled>Save client file</button></div>
+        <p class="small muted">Saved to <code>data/credentials/client_secrets.json</code>.</p>
+      </li>
+      <li><strong>Sign in.</strong> A Google window opens on this computer. Allow AI Eye to upload videos.
+        <div class="row"><button class="btn" id="yt-signin" {{ '' if yt.client_file else 'disabled' }}>Sign in with Google</button>
+        <button class="btn ghost danger" id="yt-signout" {{ '' if yt.signed_in else 'disabled' }}>Sign out</button></div>
+      </li>
+    </ol>
+    <p class="legal-note">Uploads go to your own channel through your own Google project. You must follow the
+      <a href="https://developers.google.com/youtube/terms/api-services-terms-of-service" target="_blank" rel="noopener">YouTube API Services Terms</a> and YouTube's policies.
+      Signing out removes the sign-in from this computer; to cancel the permission, also remove AI Eye in your Google account's security settings.
+      <a href="{{ base }}/docs/privacy">Privacy</a></p>
+    <p class="note" data-yt-note></p>
+    <p class="small"><a href="{{ base }}/docs/youtube-setup">Step by step: create the client file</a></p>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/connections.js"></script>{% endblock %}

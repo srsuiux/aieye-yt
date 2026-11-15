@@ -4,7 +4,8 @@ from .config import FINAL_DB
 from .store import load_db
 from .ui import fail
 
-DAILY_LIMIT    = 3
+from .tuning import tune
+DAILY_LIMIT    = tune("DAILY_LIMIT")   # change it in the web app: Settings > Advanced > Limits
 ALLOWED_COUNTS = (1, 3)
 
 def pushed_today():

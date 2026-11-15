@@ -20,6 +20,7 @@ cat <<'EOF'
 
   USAGE
     aieye                         menu: new video, script only, make video, rebuild final, upload, status
+    aieye web [--port N]          open the web app in your browser (local only; --host to share, --no-open)
     aieye run [options]           make video(s)
     aieye setup                   choose and save your default settings
     aieye trends                  list what is trending on the web right now (free)
@@ -27,7 +28,7 @@ cat <<'EOF'
     aieye help                    this page
 
   RUN OPTIONS  (any order)
-    -1 / -3             how many videos: 1 or 3 only (never more than 3 a day)
+    -1 / -3             how many videos: 1 or 3 only (daily cap: 3 pushed to YouTube; change in the web app Settings)
     -def                use saved defaults, ask nothing, random narrator per video
     -trending           topic from what is trending on the web (queue/history not used);
                         with -3 each video gets a different trend

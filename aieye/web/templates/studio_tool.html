@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% from "_notes.html" import spends_money, sent_to %}
+{% block content %}
+<div class="page">
+  <p class="crumbs"><a href="{{ base }}/studio">Studio</a> <span aria-hidden="true">/</span> {{ t.label }}</p>
+  <h1>{{ t.title }} <em class="beta">Beta</em></h1>
+  <p class="muted lead">{{ t.blurb }}</p>
+  <p class="legal-note"><strong>Beta:</strong> an experiment that can change or break. It spends real money, so check the cost first.</p>
+  {% if active %}<div class="banner">Something is already running. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+  {% if missing %}<div class="banner bad">Add your {% for k in missing %}{{ 'OpenAI' if k.startswith('OPENAI') else 'OpenRouter' }}{% if not loop.last %} and {% endif %}{% endfor %} key first. <a href="{{ base }}/connections">Open Connections</a>{% if 'OPENROUTER_API_KEY' in missing %} (<a href="{{ base }}/docs/get-openrouter-key">how to get one</a>){% endif %}</div>{% endif %}
+  {% if err %}<div class="banner bad">{{ err }}</div>{% endif %}
+
+  <form id="studio-form" class="create" data-tool="{{ tool }}" data-prices='{{ prices | tojson | forceescape }}'
+        data-models='{{ models | tojson | forceescape }}' data-icost='{{ image_cost | tojson | forceescape }}' data-fsec="{{ film_seconds }}" data-fbase="{{ film_base }}">
+    <div class="create-main">
+      {% if tool == 'stills' %}
+      <section class="panel"><h2>Picture</h2>
+        <div class="field"><label for="f-prompt">Describe it</label><textarea id="f-prompt" rows="3" maxlength="400" placeholder="a red fox standing in fresh snow at dawn"></textarea>
+          <p class="hint">One main subject works best. AI Eye adds the centre-focus and 9:16 framing for you.</p></div>
+        <div class="fields two">
+          <div class="field"><label for="f-count">How many</label><select id="f-count">{% for n in (1,2,3,4) %}<option>{{ n }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="f-quality">Quality</label><select id="f-quality">{% for q in quality %}<option {{ 'selected' if q == 'high' }}>{{ q }}</option>{% endfor %}</select></div>
+        </div></section>
+
+      {% elif tool == 'clip' %}
+      <section class="panel"><h2>Start picture</h2>
+        {% if stills %}
+        <div class="picker" role="radiogroup" aria-label="Start picture">
+          {% for s in stills %}<label class="pick"><input type="radio" name="image" value="{{ s.name }}" {{ 'checked' if loop.first }}><img src="{{ s.url }}" alt="{{ s.name }}" loading="lazy"></label>{% endfor %}
+        </div>
+        <p class="hint">Newest first. Make more on the <a href="{{ base }}/studio/stills">Stills</a> page.</p>
+        {% else %}<div class="empty"><p>No pictures yet. A clip starts from a picture.</p><a class="btn" href="{{ base }}/studio/stills">Make a picture</a></div>{% endif %}</section>
+      <section class="panel"><h2>Motion</h2>
+        <div class="field"><label for="f-prompt">What should move</label><textarea id="f-prompt" rows="3" maxlength="400" placeholder="slow push-in, the fox turns its head toward the camera"></textarea></div>
+        <div class="fields two">
+          <div class="field"><label for="f-model">Model</label><select id="f-model"></select></div>
+          <div class="field"><label for="f-res">Resolution</label><select id="f-res"></select></div>
+          <div class="field"><label for="f-dur">Length (seconds)</label><select id="f-dur"></select></div>
+        </div></section>
+
+      {% else %}
+      <section class="panel"><h2>Topic</h2>
+        <div class="field"><label for="f-topic">What is the video about</label><input id="f-topic" type="text" maxlength="200" placeholder="how a fox hunts in the snow">
+          <p class="hint">A question about how something works gives the strongest story.</p></div>
+        <details><summary>Facts you have checked (optional)</summary>
+          <div class="field"><textarea id="f-notes" rows="6" maxlength="6000" placeholder="Paste facts you trust. The writer uses these first and otherwise only facts it is very sure of."></textarea></div></details>
+      </section>
+      {% if tool == 'film' %}
+      <section class="panel"><h2>Video</h2>
+        <div class="fields two">
+          <div class="field"><label for="f-model">Model</label><select id="f-model"></select><p class="hint" id="f-model-note"></p></div>
+          <div class="field"><label for="f-res">Resolution</label><select id="f-res"></select></div>
+        </div>
+        <div class="choice-col">
+          <label class="choice"><input type="checkbox" id="f-qa" checked> <span><strong>Check each clip</strong><span class="hint">A vision model inspects every clip and redoes bad ones, up to twice. Better results, but a redo is billed again.</span></span></label>
+          <label class="choice"><input type="checkbox" id="f-ambient"> <span><strong>Keep the clip's own sound, very quietly</strong><span class="hint">Mixed under the narration.</span></span></label>
+        </div></section>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <aside class="create-side"><div class="sticky panel">
+      <h2>Cost</h2>
+      <p class="big-num" id="cost">…</p>
+      <p class="hint" id="cost-note"></p>
+      <button class="btn wide" id="go" type="button" {{ 'disabled' if missing or active }}>Make it</button>
+      <div class="confirm" id="confirm" hidden>
+        <p id="confirm-text"></p>
+        <div class="actions"><button class="btn" id="yes" type="button">Yes, spend it</button><button class="btn ghost" id="no" type="button">Cancel</button></div>
+      </div>
+      {{ spends_money() }}
+      {{ sent_to('OpenRouter and the video model\'s company' if tool == 'clip' else ('OpenAI and the video model\'s company' if tool == 'film' else 'OpenAI') ) }}
+      <p class="note" id="note" role="alert"></p>
+    </div></aside>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/studio.js"></script>{% endblock %}

@@ -5,6 +5,10 @@ numpy
 pillow
 moviepy            # also pulls in imageio-ffmpeg (the bundled ffmpeg 7.x the pipeline prefers)
 imageio-ffmpeg
+fastapi
+uvicorn
+jinja2
+markdown          # the web app (aieye web) and its docs
 google-api-python-client
 google-auth-oauthlib
 

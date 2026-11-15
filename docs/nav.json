@@ -1,0 +1,127 @@
+[
+  {
+    "section": "Start here",
+    "pages": [
+      {
+        "slug": "overview",
+        "title": "What AI Eye does"
+      },
+      {
+        "slug": "install",
+        "title": "Install and first run"
+      },
+      {
+        "slug": "web-app",
+        "title": "The web app"
+      }
+    ]
+  },
+  {
+    "section": "Accounts and keys",
+    "pages": [
+      {
+        "slug": "connections",
+        "title": "The Connections page"
+      },
+      {
+        "slug": "get-openai-key",
+        "title": "Get an OpenAI key"
+      },
+      {
+        "slug": "get-openrouter-key",
+        "title": "Get an OpenRouter key"
+      },
+      {
+        "slug": "youtube-setup",
+        "title": "Set up YouTube uploads"
+      },
+      {
+        "slug": "channel-info",
+        "title": "Find your channel details"
+      }
+    ]
+  },
+  {
+    "section": "Using it",
+    "pages": [
+      {
+        "slug": "assistant",
+        "title": "Assistant (beta)"
+      },
+      {
+        "slug": "create",
+        "title": "Create a video"
+      },
+      {
+        "slug": "library",
+        "title": "Library and uploads"
+      },
+      {
+        "slug": "topics",
+        "title": "Topics and the queue"
+      },
+      {
+        "slug": "settings",
+        "title": "Settings"
+      },
+      {
+        "slug": "terminal",
+        "title": "Terminal commands"
+      },
+      {
+        "slug": "studio",
+        "title": "Studio (beta)"
+      },
+      {
+        "slug": "experiments",
+        "title": "Video experiments"
+      },
+      {
+        "slug": "costs",
+        "title": "Costs and limits"
+      }
+    ]
+  },
+  {
+    "section": "Reference",
+    "pages": [
+      {
+        "slug": "how-it-works",
+        "title": "How a video is made"
+      },
+      {
+        "slug": "files",
+        "title": "Files and folders"
+      },
+      {
+        "slug": "troubleshooting",
+        "title": "Troubleshooting"
+      }
+    ]
+  },
+  {
+    "section": "Legal",
+    "pages": [
+      {
+        "slug": "privacy",
+        "title": "Privacy"
+      },
+      {
+        "slug": "terms",
+        "title": "Terms of use"
+      },
+      {
+        "slug": "copyright",
+        "title": "Copyright and content"
+      },
+      {
+        "slug": "license",
+        "title": "MIT License"
+      },
+      {
+        "slug": "third-party",
+        "title": "Third-party software"
+      }
+    ]
+  }
+]

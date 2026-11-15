@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
+{% block content %}
+<div class="chat" id="chat" data-name="{{ who }}" data-has-key="{{ 1 if has_key else 0 }}">
+  <header class="chat-head">
+    <span class="eye" aria-hidden="true"></span>
+    <div><h1>{{ who }} <em class="beta">Beta</em></h1><p class="muted small">{{ brand }} content assistant. Plans videos, shows its work, and only acts when you press a button.</p></div>
+    <button class="btn ghost" id="new-chat" type="button">New chat</button>
+  </header>
+
+  <div class="thread" id="thread" role="log" aria-live="polite" aria-label="Conversation with {{ who }}">
+    <div class="welcome-chat" id="empty">
+      <span class="eye big" aria-hidden="true"></span>
+      <h2>Hi, I'm {{ who }}.</h2>
+      <p class="muted">Tell me what video you want. I'll check your limits, plan it, show you the cost, and make it when you say go. You'll review it before anything is published.</p>
+      <div class="chips" id="chips">
+        <button type="button" class="chip-btn">Make a video from the next topic in my queue</button>
+        <button type="button" class="chip-btn">What is trending? Plan a video about it</button>
+        <button type="button" class="chip-btn">How many videos can I still publish today?</button>
+        <button type="button" class="chip-btn">What is waiting in my Library?</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer-wrap">
+    {% if not has_key %}<p class="banner bad">Add your OpenAI key to chat. <a href="{{ base }}/connections">Open Connections</a></p>{% endif %}
+    <form class="composer" id="composer">
+      <label class="sr" for="msg">Message {{ who }}</label>
+      <textarea id="msg" rows="1" maxlength="4000" placeholder="Ask {{ who }} to make a video…" {{ 'disabled' if not has_key }}></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send" {{ 'disabled' if not has_key }}><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </form>
+    <p class="muted small fine">{{ who }} is an AI and can be wrong. It never spends money or publishes on its own. Chat replies cost about half a cent. <a href="{{ base }}/docs/assistant">How it works</a></p>
+  </div>
+  <template id="publish-note">{{ before_publish() }}</template>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/assistant.js"></script>{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_notes.html" import before_publish, spends_money %}
+{% block content %}
+<div class="page">
+  <h1>Create</h1>
+  <p class="muted lead">Everything here is filled in from your saved <a href="{{ base }}/settings">settings</a>. Changes on this page apply to this run only.</p>
+
+  {% if active %}
+  <div class="banner">A video is already being made. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>
+  {% endif %}
+  {% if not has_key %}
+  <div class="banner bad">Add your OpenAI key before making a video. <a href="{{ base }}/connections">Open Connections</a></div>
+  {% endif %}
+
+  <form id="create-form" class="create" data-cost='{{ d.cost | tojson | forceescape }}' data-left="{{ left }}" data-extra="{{ extra_lang }}" data-signed="{{ 1 if can_upload else 0 }}">
+    <div class="create-main">
+      <section class="panel">
+        <h2>How many</h2>
+        <div class="choice-row">
+          <label class="choice"><input type="radio" name="count" value="1" checked> <span><strong>1 video</strong></span></label>
+          <label class="choice"><input type="radio" name="count" value="3"> <span><strong>3 videos</strong><span class="hint">One after another, each with a different narrator if voices are shuffled.</span></span></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Topic</h2>
+        <div class="choice-col">
+          {% for key, label in sources.items() %}
+          <label class="choice"><input type="radio" name="source" value="{{ key }}" {{ 'checked' if loop.first else '' }}>
+            <span><strong>{{ label }}</strong>
+              {% if key == 'queue' %}<span class="hint">{% if next_topic %}Next up: {{ next_topic }} ({{ queued }} waiting){% else %}The queue is empty, so AI Eye writes new ideas.{% endif %} <a href="{{ base }}/topics">Manage topics</a></span>
+              {% elif key == 'trending' %}<span class="hint">Picks something people are looking at now, suitable for a facts Short.</span>
+              {% elif key == 'top' %}<span class="hint">Rotates through your top categories, with photo-real close-ups.</span>
+              {% else %}<span class="hint">One video about your idea. AI Eye rewrites it into a clear question.</span>{% endif %}</span></label>
+          {% endfor %}
+          <div class="field" id="topic-wrap" hidden><label class="sr" for="topic">Your topic</label><input id="topic" type="text" maxlength="140" placeholder="Why do we yawn when others yawn?"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Languages</h2>
+        <div class="checks">{% for code, name in langs.items() %}<label><input type="checkbox" name="lang" value="{{ code }}" {{ 'checked' if code == 'en' else '' }}> {{ name }}</label>{% endfor %}</div>
+        <p class="hint">One video per language from the same topic and pictures. Each extra language costs about ${{ '%.2f' | format(extra_lang) }} and is a separate upload.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Look and sound</h2>
+        <div class="fields two">
+          {% for key in ['image_quality','image_style','tts_voice','batch_voice'] %}
+          <div class="field"><label for="f-{{ key }}">{{ d.info[key][0] }}</label>
+            <select id="f-{{ key }}" name="{{ key }}">{% for opt in d.choices[key] %}<option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>{{ voice_label(opt) if key == 'tts_voice' else opt }}</option>{% endfor %}</select></div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Upload</h2>
+        <div class="fields">
+          <div class="field"><label for="f-upload_privacy">Who can watch it</label>
+            <select id="f-upload_privacy" name="upload_privacy">{% for opt in d.choices.upload_privacy %}<option value="{{ opt }}" {{ 'selected' if d['values'].upload_privacy == opt else '' }}>{{ 'none: make the video but do not upload' if opt == 'none' else opt }}</option>{% endfor %}</select>
+            {% if not can_upload %}<p class="hint">YouTube is not connected, so an upload will fail. <a href="{{ base }}/connections#youtube">Connect YouTube</a> or choose none.</p>{% endif %}</div>
+          <label class="inline"><input type="checkbox" id="f-review" {{ 'checked' if d.review else '' }}> Review the video before it uploads</label>
+          <p class="hint" id="review-hint">You see the finished video, can edit the title, description and tags, then choose to upload or skip. Turn this off to upload as soon as it is made.</p>
+        </div>
+      </section>
+      {{ before_publish() }}
+    </div>
+
+    <aside class="create-side">
+      <div class="panel sticky">
+        <h2>This run</h2>
+        <p class="big" id="est">$0.00</p>
+        <p class="muted small" id="est-note"></p>
+        <p class="small" id="limit-note"></p>
+        <p class="note warn-note" id="pub-warn" hidden></p>
+        <p class="note bad" id="form-error"></p>
+        {{ spends_money() }}
+        <button class="btn wide" type="submit" id="go" {{ 'disabled' if (active or not has_key) else '' }}>Make video</button>
+        <div id="confirm" class="confirm" hidden>
+          <p><strong id="confirm-text"></strong></p>
+          <div class="actions"><button class="btn" type="button" id="confirm-go">Start and spend</button><button class="btn ghost" type="button" id="confirm-cancel">Cancel</button></div>
+        </div>
+      </div>
+    </aside>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/create.js"></script>{% endblock %}

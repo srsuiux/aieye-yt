@@ -1,11 +1,12 @@
 import sys, time, json
 from .config import SETTINGS_FILE, CFG, EDIT_REF_COST, EXPECTED_SHOTS, IMAGE_COST, N_SCENES
+from .tuning import tune
 from .limits import DAILY_LIMIT, check_count_choice, enforce_daily, pushed_today
 from .ui import c, fail, ok, prompt_choice, prompt_text
 
 # SETTINGS — saved defaults, run modes
 
-BATCH_DEFAULT = 3          # the only batch size; 1 or 3 videos per run, max 3 a day (aieye/limits.py)
+BATCH_DEFAULT = 3          # the only batch size; 1 or 3 videos per run, daily cap in aieye/limits.py, default 3
 SETTING_CHOICES = {
     "image_style":    ["representational", "realistic", "illustrated"],
     "image_quality":  list(IMAGE_COST),
@@ -13,9 +14,33 @@ SETTING_CHOICES = {
     "tts_voice":      ["marin", "cedar", "nova", "alloy", "echo", "fable", "onyx", "shimmer", "coral", "sage", "ash", "ballad", "verse"],
     "batch_voice":    ["shuffle", "same"],
 }
+# Where each narrator comes from, and what it sounds like. Add a new provider's voices here and they show up in the web app.
+VOICE_INFO = {
+    "marin":   ("OpenAI", "Natural, lively female. Best quality."),
+    "cedar":   ("OpenAI", "Natural, grounded male. Best quality."),
+    "nova":    ("OpenAI", "Warm, upbeat female"),
+    "alloy":   ("OpenAI", "Neutral, balanced, clear and professional"),
+    "echo":    ("OpenAI", "Smooth male, calm and authoritative"),
+    "fable":   ("OpenAI", "Expressive British, storytelling feel"),
+    "onyx":    ("OpenAI", "Deep, rich male, dramatic and bold"),
+    "shimmer": ("OpenAI", "Soft, gentle female"),
+    "coral":   ("OpenAI", "Warm, friendly female"),
+    "sage":    ("OpenAI", "Calm, thoughtful"),
+    "ash":     ("OpenAI", "Clear, steady male"),
+    "ballad":  ("OpenAI", "Smooth, expressive"),
+    "verse":   ("OpenAI", "Bright, dynamic"),
+}
+
+
+def voice_label(name):
+    """'marin · OpenAI · Natural, lively female. Best quality.' for menus."""
+    prov, desc = VOICE_INFO.get(name, ("", ""))
+    return " · ".join(p for p in (name, prov, desc) if p)
+
+
 OPTIONAL_SETTINGS = {"batch_voice": "shuffle"}     # missing in older settings files → use this
 # Voices used when a batch shuffles narrators. Samples of every voice are in assets/voice_samples/ — edit to taste.
-VOICE_POOL = ["marin", "cedar", "nova", "coral", "sage", "ash", "ballad", "verse"]
+VOICE_POOL = tune("VOICE_POOL")
 
 def shuffled_voices(count):
     """`count` narrators from VOICE_POOL: no repeats until the pool is used up, never the same twice in a row."""
@@ -46,6 +71,11 @@ def load_defaults():
 
 def save_defaults():
     data = {k: CFG[k] for k in SETTING_CHOICES}
+    try:                                        # keep settings only the web app uses (e.g. review_before_upload)
+        old = json.load(open(SETTINGS_FILE))
+        data.update({k: v for k, v in old.items() if k not in SETTING_CHOICES})
+    except Exception:
+        pass
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(SETTINGS_FILE, "w") as f:
         json.dump(data, f, indent=2)

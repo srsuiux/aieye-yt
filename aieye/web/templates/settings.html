@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Settings</h1>
+  <p class="muted lead">These are used for every new video unless you change them for one run. {% if not d.saved %}<strong>You have not saved defaults yet.</strong> The values below are suggestions.{% endif %}</p>
+
+  <section class="panel">
+    <h2>Defaults for new videos</h2>
+    <form id="defaults-form" class="fields">
+      {% for key in ['image_style','image_quality','upload_privacy','tts_voice','batch_voice'] %}
+      <div class="field">
+        <label for="d-{{ key }}">{{ d.info[key][0] }}</label>
+        <select id="d-{{ key }}" data-key="{{ key }}">
+          {% for opt in d.choices[key] %}
+          <option value="{{ opt }}" {{ 'selected' if d['values'][key] == opt else '' }}>
+            {%- if key == 'image_quality' %}{{ opt }} · about ${{ '%.2f' | format(d.cost[opt].one) }} a video, ${{ '%.2f' | format(d.cost[opt].batch) }} for 3{{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- elif key == 'upload_privacy' and opt == 'none' %}none (render only, do not upload){{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- elif key == 'tts_voice' %}{{ voice_label(opt) }}{{ ' · Recommended' if opt == d.fallback[key] }}
+            {%- else %}{{ opt }}{{ ' · Recommended' if opt == d.fallback[key] }}{% endif -%}
+          </option>
+          {% endfor %}
+        </select>
+        <p class="hint">Author's default: <strong>{{ d.fallback[key] }}</strong>. {{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI, are synthetic (computer-made), and are billed to your OpenAI key. Say so where a platform asks.{% endif %}</p>
+      </div>
+      {% endfor %}
+      <div class="field"><label class="inline"><input type="checkbox" id="d-review" {{ 'checked' if d.review else '' }}> Review each video before it uploads</label>
+        <p class="hint">After a video is made you see it, can change the title, description and tags, and then choose to upload or skip. You can still turn this off for one run on the Create page.</p></div>
+      <p class="note warn-note" id="public-warn" hidden>Public means every finished video is published immediately, including all three in a batch.</p>
+      <div class="actions"><button class="btn" type="submit">Save defaults</button><span class="note" id="defaults-note"></span></div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="head-row"><div><h2>Advanced</h2>
+      <p class="muted small">Models, script length and the look of the video. The defaults are good; change these only if you know why. Changes apply to the next video you make.</p></div>
+      <button class="btn ghost danger" id="adv-reset-all" type="button">Reset all</button></div>
+    <form id="adv-form">
+      {% for g in groups %}
+      <details class="group" {{ 'open' if loop.first else '' }}>
+        <summary>{{ g.group }}</summary>
+        <div class="fields">
+          {% for it in g['items'] %}
+          <div class="field" data-field="{{ it.key }}" data-kind="{{ it.kind }}" data-default="{{ it.default | tojson | forceescape }}">
+            <div class="label-row"><label for="a-{{ it.key }}">{{ it.label }}</label>
+              <span class="changed" {{ '' if it.changed else 'hidden' }}>Changed</span>
+              <button type="button" class="link-btn" data-reset {{ '' if it.changed else 'hidden' }}>Reset</button></div>
+            {% if it.kind == 'int' or it.kind == 'float' %}
+              <input id="a-{{ it.key }}" type="number" data-key="{{ it.key }}" value="{{ it.value }}" min="{{ it.min }}" max="{{ it.max }}" step="{{ '1' if it.kind == 'int' else '0.02' }}">
+            {% elif it.kind == 'choice' %}
+              <select id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.choices %}<option {{ 'selected' if it.value == o else '' }}>{{ o }}</option>{% endfor %}</select>
+            {% elif it.kind == 'model' %}
+              <select id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.options %}<option value="{{ o.id }}" {{ 'selected' if it.value == o.id else '' }}>{{ o.text }}</option>{% endfor %}</select>
+            {% elif it.kind == 'color' %}
+              <input id="a-{{ it.key }}" type="color" data-key="{{ it.key }}" value="{{ it.value }}">
+            {% elif it.kind == 'longtext' %}
+              <textarea id="a-{{ it.key }}" data-key="{{ it.key }}" rows="6">{{ it.value }}</textarea>
+            {% elif it.kind == 'voices' %}
+              <div class="checks" id="a-{{ it.key }}" data-key="{{ it.key }}">{% for o in it.choices %}<label><input type="checkbox" value="{{ o }}" {{ 'checked' if o in it.value else '' }}> <span>{{ o }} <span class="muted small">{{ voice_info.get(o, ('',''))[0] }}</span></span></label>{% endfor %}</div>
+            {% else %}
+              <input id="a-{{ it.key }}" type="text" data-key="{{ it.key }}" value="{{ it.value }}" spellcheck="false">
+            {% endif %}
+            <p class="hint">{{ it.help }}{% if it.kind in ('int','float') %} ({{ it.min }} to {{ it.max }}.){% endif %}
+              {%- if it.kind == 'model' %} <span class="model-note"></span>{% endif %}
+              {%- if it.default_text %} Author's default: <strong>{{ it.default_text }}</strong>.{% endif %}</p>
+            {% if it.kind == 'model' %}<script type="application/json" class="model-notes">{{ it.options | tojson }}</script>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endfor %}
+      <div class="actions"><button class="btn" type="submit">Save advanced settings</button><span class="note" id="adv-note"></span></div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/settings.js"></script>{% endblock %}

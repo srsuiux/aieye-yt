@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Topics</h1>
+  <p class="muted lead">Videos are made from this queue, from the top. When it runs out, AI Eye asks the model for new ideas. A topic that matches something already made is flagged, because repeats get far fewer views.</p>
+
+  <section class="panel">
+    <h2>Add a topic</h2>
+    <form id="topic-form" class="fields">
+      <div class="field"><label for="t-title">Topic</label><input id="t-title" type="text" maxlength="140" placeholder="Why does a spinning skater speed up?"></div>
+      <div class="field"><label for="t-hook">One-line hook (optional)</label><input id="t-hook" type="text" maxlength="400" placeholder="Pulling her arms in changes how fast she turns."></div>
+      <div class="actions"><button class="btn" type="submit">Add to queue</button><span class="note" id="topic-note"></span></div>
+      <div id="dup-box" class="dup" hidden><span id="dup-msg"></span> <button class="btn ghost" type="button" id="dup-force">Add it anyway</button></div>
+    </form>
+  </section>
+
+  <h2 class="section-title">Queue <span class="muted">({{ t.queue | length }})</span></h2>
+  {% if t.queue %}
+  <ol class="queue">
+    {% for q in t.queue %}
+    <li class="qitem" data-id="{{ q.id }}">
+      <div class="qtext"><strong>{{ q.title }}</strong>{% if q.hook %}<div class="muted small">{{ q.hook }}</div>{% endif %}
+        {% if q.status == 'in_progress' %}<div class="small warn">Being made, or interrupted. It is skipped until you return it to the queue.</div>{% endif %}</div>
+      <div class="qact">
+        {% if q.status == 'in_progress' %}<button class="btn ghost" data-act="requeue">Return to queue</button>
+        {% else %}
+        <button class="icon-btn" data-act="up" aria-label="Move up" {{ 'disabled' if loop.first else '' }}>↑</button>
+        <button class="icon-btn" data-act="down" aria-label="Move down" {{ 'disabled' if loop.last else '' }}>↓</button>
+        <button class="btn ghost danger" data-act="delete">Remove</button>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="empty"><p>The queue is empty. Add a topic above, or just make a video and AI Eye will write new ideas.</p></div>
+  {% endif %}
+
+  <h2 class="section-title">Already made <span class="muted">({{ t.history | length }} most recent)</span></h2>
+  {% if t.history %}
+  <ul class="plain">{% for h in t.history %}<li><span>{{ h.title or h.topic }}</span><span class="muted small">{{ h.when }}</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">Nothing yet.</p>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/topics.js"></script>{% endblock %}

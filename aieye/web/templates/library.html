@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
+{% block content %}
+<div class="page">
+  <h1>Library</h1>
+  <p class="muted lead">Videos that were made but not uploaded stay here until you upload or delete them.</p>
+
+  {% if active %}<div class="banner">A video is being made. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+
+  {% if kept %}{{ before_publish() }}{% endif %}
+  <h2 class="section-title">Waiting to upload <span class="muted">({{ kept | length }})</span></h2>
+  {% if kept %}
+  <div class="bulk" id="bulk">
+    <label class="inline"><input type="checkbox" id="sel-all"> Select all</label>
+    <span class="muted small" id="sel-count">None selected</span>
+    <span class="grow"></span>
+    <button class="btn ghost danger" type="button" id="del-selected" disabled>Delete selected</button>
+    <button class="btn ghost danger" type="button" id="del-all" data-count="{{ kept | length }}" data-mb="{{ '%.0f' | format(kept | sum(attribute='size')) }}">Delete all ({{ kept | length }})</button>
+  </div>
+  <div class="kept">
+    {% for v in kept %}
+    <article class="panel kept-item" data-id="{{ v.id }}" data-size="{{ v.size }}" data-privacy="private">
+      <label class="pick-box"><input type="checkbox" class="k-sel" aria-label="Select {{ v.meta.title }}"></label>
+      <video controls preload="none" playsinline src="/library/video/{{ v.id }}"></video>
+      <div class="fields">
+        <div class="field"><label>Title</label><input type="text" class="k-title" maxlength="100" value="{{ v.meta.title }}"></div>
+        <details><summary>Description and tags</summary>
+          <div class="field"><label>Description</label><textarea class="k-desc" rows="6">{{ v.meta.description }}</textarea></div>
+          <div class="field"><label>Tags</label><input type="text" class="k-tags" value="{{ v.tags | join(', ') }}"></div></details>
+        <div class="field"><label>Who can watch it</label>
+          <select class="k-privacy"><option>private</option><option>unlisted</option><option>public</option></select></div>
+        <p class="muted small">{{ v.lang }} · made {{ v.when }} · {{ v.size }} MB</p>
+        <div class="actions"><button class="btn k-upload" type="button" {{ '' if (can_upload and not active) else 'disabled' }}>Upload to YouTube</button>
+          <button class="btn ghost danger k-delete" type="button">Delete video</button><span class="note k-note"></span></div>
+        {% if not can_upload %}<p class="hint">YouTube is not connected. <a href="{{ base }}/connections#youtube">Connect YouTube</a> to upload.</p>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>Nothing is waiting. Videos made with upload set to none, skipped at review, or whose upload failed appear here.</p><a class="btn" href="{{ base }}/create">Make a video</a></div>
+  {% endif %}
+
+  <h2 class="section-title">Uploaded</h2>
+  {% if uploaded %}
+  <div class="cards">{% for u in uploaded %}
+    <article class="vcard">
+      <a class="thumb" href="{{ u.link }}" target="_blank" rel="noopener" aria-label="Watch {{ u.title }} on YouTube">
+        {% if u.thumb %}<img src="{{ u.thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}<span>{{ u.title }}</span></a>
+      <div class="meta"><h3>{{ u.title }}</h3><p class="muted small">{{ u.when }}{% if u.cost %} · ${{ '%.2f' | format(u.cost) }}{% endif %}</p></div>
+    </article>{% endfor %}
+  </div>
+  {% else %}<p class="muted">Nothing uploaded yet.</p>{% endif %}
+
+  <h2 class="section-title">Recent runs</h2>
+  {% if recent %}
+  <ul class="plain">{% for r in recent %}<li><a href="{{ base }}/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else ('Studio ' ~ r.params.tool if r.kind == 'studio' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else ''))) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">No runs yet.</p>{% endif %}
+</div>
+<dialog id="del-dialog" aria-labelledby="del-title">
+  <form method="dialog">
+    <h2 id="del-title">Delete videos?</h2>
+    <p id="del-text"></p>
+    <p class="muted small">This removes the files from this computer and cannot be undone. Nothing on YouTube is touched.</p>
+    <div class="field" id="del-type" hidden><label for="del-word">Type <strong>delete</strong> to confirm</label><input id="del-word" type="text" autocomplete="off"></div>
+    <div class="actions"><button class="btn ghost" value="cancel" id="del-cancel" autofocus>Cancel</button><button class="btn danger-solid" type="button" id="del-go">Delete</button></div>
+    <p class="note bad" id="del-note"></p>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="/static/library.js"></script>{% endblock %}

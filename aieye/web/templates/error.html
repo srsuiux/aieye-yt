@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page narrow">
+  <h1>{{ title }}</h1>
+  <p class="muted">{{ message }}</p>
+  {% if back %}<p><a class="btn" href="{{ base }}{{ back[0] }}">{{ back[1] }}</a></p>{% endif %}
+</div>
+{% endblock %}
