@@ -366,7 +366,7 @@ def setup_run(args):
             (f"Make {BATCH_DEFAULT} videos", "batch", f"{describe(saved, batch=True)}  ·  ~${per*BATCH_DEFAULT:.2f}"),
             ("Customize this run", "custom", "Pick a topic and settings just for this run"),
             ("Change saved defaults", "defaults", "Edit and save the settings used by the options above"),
-            ("Make an AI video", "studio", "pick Grok Imagine or Veo, get a complete video"),
+            ("Make an AI video", "studio", "pick a video model, get a complete video (experimental)"),
         ])
         if mode == "studio":
             from .menu import main_menu

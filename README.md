@@ -1,10 +1,29 @@
 # AI Eye — Shorts Pipeline
 
 Turns a topic into a finished YouTube Short — script, narration, images, animated video with
-highlighted captions — and uploads it. One command (or one double-click) makes 1 video or a batch of 3 (never more than 3 a day).
+highlighted captions — and uploads it. One command (or one double-click) makes 1 video or a batch of 3 (it refuses to push
+more than 3 videos to YouTube in one day).
 
 > A framework you run yourself with your own API keys. Your channel's name, description and stats stay on your machine in
 > git-ignored files (see [Your channel](#your-channel)); nothing about anyone's channel ships with the code.
+
+## Quick start
+
+```bash
+git clone https://github.com/srsuiux/aieye-yt.git && cd aieye-yt
+pip install -r requirements.txt
+echo "OPENAI_API_KEY=sk-..." > .env               # your own key
+cp channel.example.json data/channel.json         # optional: your channel's name, tags, description
+python3 ysa-cli.py --setup                        # pick defaults once (use upload privacy "none" to just render)
+python3 ysa-cli.py --quick                        # make 1 video
+```
+
+Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
+
+**Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) ·
+[The `aieye` command](#the-aieye-command) · [Experiments](#experiments-optional-not-part-of-the-daily-pipeline) · [Usage](#usage) ·
+[Settings](#settings) · [Output & data](#output--data) · [Cost](#cost) · [Customising](#customising) ·
+[Troubleshooting](#troubleshooting) · [Design notes](#design-notes) · [Project layout](#project-layout)
 
 ---
 
@@ -30,7 +49,7 @@ A ~45–55 second vertical video (1080×1920, 30 fps, H.264 + AAC) with:
 
 | Step | What happens | Model / tool |
 |---|---|---|
-| 0. Topic | Takes the next pending topic from the queue, or asks the model for 10 fresh ones (never repeating past titles). A custom topic can be given instead. | `gpt-6-luna` |
+| 0. Topic | Takes the next pending topic from the queue, or asks the model for 10 fresh ones aimed at curious kids (8–12). A **strict duplicate gate** rejects any topic about the same animal, object or phenomenon as an earlier video (cheap word-overlap check, then one model check). A custom or trending topic can be given instead. | `gpt-6-luna` |
 | 1. Script | **Research** (fact-checked, with a through-line) → **Draft** (spoken-word rules, delivery note per scene, shared visual style, each scene split into 2–3 *shots* with their own picture prompt) → **Read-aloud edit** (removes AI-sounding phrases, softens shaky claims, fixes speakability). | `gpt-6-luna` |
 | 2. Voice | One request per scene, with a base style plus that scene's delivery note. Silence trimmed at both ends. | `gpt-4o-mini-tts-2025-03-20` |
 | 3. Images | One 1024×1536 image per **shot**. Shot 1 of each scene is generated fresh; shots 2–3 are *edited from shot 1 as a reference* (same subject/lighting/look, new camera angle). Scenes run 3 at a time, with automatic waiting and retry on rate limits. All share the script's visual style and leave the bottom third clear for captions. | `gpt-image-2.5-flare` |
@@ -92,6 +111,7 @@ Only needed if you want the pipeline to upload. Without it, choose **Don't uploa
 ```bash
 aieye run -trending -1 -def   # 1 video, topic from what is trending on the web, saved defaults, random narrator
 aieye run -top -3 -def        # 3 videos from the top categories (animals, space, underwater, everyday what-if puzzles), photo-real close-ups
+aieye run -1 -def -en -hindi "topic"   # one video per language (see Languages)
 aieye run -3 -def             # 3 videos from the queue, saved defaults, shuffled narrators
 aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
@@ -185,6 +205,7 @@ Running with no flags shows:
 2. **Make 3 videos** — with your saved defaults (narrators shuffled)
 3. **Customize this run** — pick a topic and settings just for this run (and optionally save them)
 4. **Change saved defaults**
+5. **Make an AI video** — the experimental text-to-video studio (needs `OPENROUTER_API_KEY`, spends credit; see [Experiments](#experiments-optional-not-part-of-the-daily-pipeline))
 
 ## Settings
 
@@ -253,6 +274,10 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 | Caption size of a card | `CAPTION_MAX_WORDS`, `CAPTION_MAX_CHARS` |
 | How early captions appear | `CAPTION_LEAD_CARD`, `CAPTION_LEAD_WORD` |
 | Scenes rendered at once | `RENDER_WORKERS` |
+| Audience and topic taste (who the videos are for, what to prefer or avoid) | `AUDIENCE_NOTES` |
+| Reading level and safety rules for scripts | `KID_RULES` |
+| Categories that `-top` rotates through | `TOP_CATEGORIES` |
+| Daily upload cap / allowed batch sizes | `DAILY_LIMIT`, `ALLOWED_COUNTS` in `aieye/limits.py` |
 | Script style rules | the prompts inside `generate_script()` |
 
 ## Troubleshooting
