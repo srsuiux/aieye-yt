@@ -1,0 +1,25 @@
+[
+  {"section": "Start here", "pages": [
+    {"slug": "overview", "title": "What AI Eye does"},
+    {"slug": "install", "title": "Install and first run"},
+    {"slug": "web-app", "title": "The web app"}
+  ]},
+  {"section": "Accounts and keys", "pages": [
+    {"slug": "connections", "title": "The Connections page"},
+    {"slug": "get-openai-key", "title": "Get an OpenAI key"},
+    {"slug": "get-openrouter-key", "title": "Get an OpenRouter key"},
+    {"slug": "youtube-setup", "title": "Set up YouTube uploads"},
+    {"slug": "channel-info", "title": "Find your channel details"}
+  ]},
+  {"section": "Using it", "pages": [
+    {"slug": "settings", "title": "Settings"},
+    {"slug": "terminal", "title": "Terminal commands"},
+    {"slug": "experiments", "title": "Video experiments"},
+    {"slug": "costs", "title": "Costs and limits"}
+  ]},
+  {"section": "Reference", "pages": [
+    {"slug": "how-it-works", "title": "How a video is made"},
+    {"slug": "files", "title": "Files and folders"},
+    {"slug": "troubleshooting", "title": "Troubleshooting"}
+  ]}
+]

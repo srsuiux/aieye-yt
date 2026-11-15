@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+  <h1>Home</h1>
+
+  <section class="panel usage">
+    <div class="usage-head">
+      <h2>Videos pushed to YouTube today</h2>
+      <p class="big">{{ used }} <span class="muted">of {{ limit }}</span></p>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ limit }}" aria-valuenow="{{ used }}"><i style="width: {{ (used / limit * 100) | round }}%"></i></div>
+    <p class="muted small">AI Eye never pushes more than {{ limit }} videos a day. {{ pending }} topic{{ '' if pending == 1 else 's' }} waiting in the queue.</p>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel">
+      <h2>Set up</h2>
+      <ul class="checklist">
+        {% for item in checklist %}
+        <li class="{{ 'done' if item.done else '' }}">
+          <span class="tick" aria-hidden="true">{{ '✓' if item.done else '' }}</span>
+          <div><a href="{{ item.href }}">{{ item.label }}</a><div class="muted small">{{ item.help }}</div></div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section class="panel">
+      <h2>Make a video</h2>
+      <p class="muted">Creating videos from this page arrives with the next update of the web app. Until then, run <code>aieye run -1 -def</code> in the terminal; finished videos appear below.</p>
+      <p><a class="btn ghost" href="/docs/terminal">Terminal commands</a> <a class="btn ghost" href="/docs/web-app">About the web app</a></p>
+    </section>
+  </div>
+
+  <h2 class="section-title">Recent videos</h2>
+  {% if recent %}
+  <div class="cards">
+    {% for v in recent %}
+    <article class="vcard">
+      <div class="thumb"><span>{{ v.title or v.topic }}</span></div>
+      <div class="meta">
+        <h3>{{ v.title or v.topic }}</h3>
+        <p class="muted small">{{ v.when }}{% if v.cost %} · ${{ '%.2f' | format(v.cost) }}{% endif %}</p>
+        {% if v.link %}<a class="small" href="{{ v.link }}" target="_blank" rel="noopener">Watch on YouTube</a>{% else %}<span class="muted small">Not uploaded</span>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then run your first video from the terminal.</p><a class="btn" href="/connections">Open Connections</a></div>
+  {% endif %}
+</div>
+{% endblock %}

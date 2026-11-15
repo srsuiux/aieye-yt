@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · AI Eye</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f03'/%3E%3Cpath d='M12 9l11 7-11 7z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/app.css">
+<script>try{var t=localStorage.getItem("aieye-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+{% macro icon(name) -%}
+<svg class="ico" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+{%- if name == "home" %}<path d="M4 11.5 12 4l8 7.5V20h-5v-6H9v6H4z"/>
+{%- elif name == "link" %}<path d="M10.6 13.4a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M13.4 10.6a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+{%- elif name == "book" %}<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+{%- endif %}</svg>
+{%- endmacro %}
+<header class="top">
+  <button class="icon-btn" id="rail-toggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <a class="brand" href="/" aria-label="AI Eye home"><span class="mark"><svg viewBox="0 0 32 32" width="30" height="22"><rect width="32" height="22" y="5" rx="6" fill="#f03"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">AI Eye</span></a>
+  <span class="spacer"></span>
+  <span class="chip {{ 'chip-warn' if remote else '' }}" title="{{ 'Reachable from your network' if remote else 'Only this computer can open this page' }}">{{ 'Network access on' if remote else 'Local only' }}</span>
+  <button class="icon-btn" id="theme-toggle" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg></button>
+</header>
+<div class="shell">
+  <nav class="rail" aria-label="Main">
+    {% for n in nav %}
+    <a href="{{ n.href }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span></a>
+    {% endfor %}
+  </nav>
+  <main id="main">{% block content %}{% endblock %}</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

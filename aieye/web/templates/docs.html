@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="docs">
+  <aside class="docs-nav" aria-label="Documentation">
+    <input type="search" id="docs-filter" placeholder="Filter pages" aria-label="Filter documentation pages">
+    {% for sec in docs_nav %}
+    <div class="docs-sec">
+      <h2>{{ sec.section }}</h2>
+      <ul>{% for p in sec.pages %}<li><a href="/docs/{{ p.slug }}" class="{{ 'on' if p.slug == doc.slug else '' }}">{{ p.title }}</a></li>{% endfor %}</ul>
+    </div>
+    {% endfor %}
+  </aside>
+  <article class="docs-body">
+    <p class="crumbs"><a href="/docs">Docs</a> <span aria-hidden="true">/</span> {{ doc.section }}</p>
+    <div class="prose">{{ doc.html | safe }}</div>
+    <nav class="pager" aria-label="Previous and next">
+      {% if doc.prev %}<a href="/docs/{{ doc.prev.slug }}"><span class="muted small">Previous</span><br>{{ doc.prev.title }}</a>{% else %}<span></span>{% endif %}
+      {% if doc.next %}<a class="r" href="/docs/{{ doc.next.slug }}"><span class="muted small">Next</span><br>{{ doc.next.title }}</a>{% endif %}
+    </nav>
+  </article>
+  <aside class="docs-toc" aria-label="On this page">
+    {% if doc.toc and doc.toc[0].children %}
+    <h2>On this page</h2>
+    <ul>{% for t in doc.toc[0].children %}<li><a href="#{{ t.id }}">{{ t.name }}</a></li>{% endfor %}</ul>
+    {% elif doc.toc %}
+    <h2>On this page</h2>
+    <ul>{% for t in doc.toc %}<li><a href="#{{ t.id }}">{{ t.name }}</a></li>{% endfor %}</ul>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

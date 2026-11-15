@@ -20,6 +20,9 @@ python3 aieye-cli.py --quick                        # make 1 video
 
 Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
 
+**Web app:** `aieye web` opens the same tool in your browser (local only by default): add keys on the Connections page, read the
+docs, see today's uploads. The documentation lives in [`docs/`](docs/overview.md) and is also served at `/docs` in the app.
+
 **Contents:** [What it makes](#what-it-makes) · [How it works](#how-it-works) · [Requirements](#requirements) · [Setup](#setup) ·
 [The `aieye` command](#the-aieye-command) · [Experiments](#experiments-optional-not-part-of-the-daily-pipeline) · [Usage](#usage) ·
 [Settings](#settings) · [Output & data](#output--data) · [Cost](#cost) · [Customising](#customising) ·
@@ -119,6 +122,7 @@ aieye run -trending -3 -def   # 3 videos, each on a different trend
 aieye run -custom -1 -def -custom Why do we yawn   # your own topic (quotes optional)
 aieye setup                   # choose and save defaults
 aieye trends                  # just list what is trending (free)
+aieye web                     # the web app (local only; --port N, --no-open, --host to share with a token)
 aieye models                  # list image-to-video models and live prices (free; experiments)
 aieye menu                    # AI video studio (experiments; spends OpenRouter credit)
 aieye                         # interactive menu
@@ -338,6 +342,8 @@ aieye/                      the pipeline, one module per step
     scriptlab.py              experiment  -script   research, draft, critic, revise
     film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
     menu.py                   experiment  menu   guided AI video studio
+aieye/web/                  the web app: server.py (routes + guard), connections.py, docs.py, templates/, static/
+docs/                       documentation as Markdown (docs/nav.json = order); served at /docs by the web app
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)
 requirements.txt            dependencies

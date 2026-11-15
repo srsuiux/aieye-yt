@@ -11,7 +11,7 @@ from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
 from .store import get_pending, mark_done, mark_in_progress
 from .topics import pick_topic
-from .ui import c, log, ok, section, spin, warn
+from .ui import c, fail, log, ok, section, spin, warn
 from .video import assemble_video
 from .youtube import upload_to_youtube
 
@@ -194,6 +194,19 @@ def print_batch_summary(results, seconds):
 
 def main():
     argv = sys.argv[1:]
+    if argv and argv[0] in ("web", "-web", "--web"):    # the local web app (see aieye/web/server.py)
+        import argparse
+        ap = argparse.ArgumentParser(prog="aieye web", description="AI Eye web app")
+        ap.add_argument("--host", default="127.0.0.1", help="address to listen on (default: this computer only)")
+        ap.add_argument("--port", type=int, default=8420)
+        ap.add_argument("--no-open", action="store_true", help="do not open the browser")
+        a = ap.parse_args(argv[1:])
+        try:
+            from .web.server import run
+        except ImportError:
+            fail("The web app needs: pip install fastapi uvicorn jinja2 markdown")
+        run(a.host, a.port, open_browser=not a.no_open)
+        return
     if argv == ["menu"]:                        # straight into the AI video studio (also reachable from the main menu)
         from .menu import main_menu
         main_menu()
