@@ -237,3 +237,5 @@ a.tool h2 { margin-top: 0; }
 .bar i.pulse { animation: pulse 1.6s ease-in-out infinite; } @keyframes pulse { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .bar i.pulse { animation: none; } }
 .file-link { display: block; margin: 8px 0; }
+
+[hidden] { display: none !important; }
