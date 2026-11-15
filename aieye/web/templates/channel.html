@@ -2,7 +2,7 @@
 {% block content %}
 <div class="page">
   <h1>Channel</h1>
-  <p class="muted lead">Added to every upload. Saved in <code>data/channel.json</code> on this computer. {% if not ch.exists %}You have not saved any yet, so generic text is used.{% endif %} <a href="/docs/channel-info">Where to find these details</a></p>
+  <p class="muted lead">Added to every upload. Saved in <code>data/channel.json</code> on this computer. {% if not ch.exists %}You have not saved any yet, so generic text is used.{% endif %} <a href="{{ base }}/docs/channel-info">Where to find these details</a></p>
   <form class="panel" id="channel-form">
     <div class="fields">
       <div class="field"><label for="c-handle">Handle</label><input id="c-handle" type="text" value="{{ ch.handle }}" placeholder="@YourChannel"><p class="hint">Shown in the description. Starts with @.</p></div>

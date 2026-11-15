@@ -2,13 +2,13 @@
 {% block content %}
 <div class="page">
   <h1>Create</h1>
-  <p class="muted lead">Everything here is filled in from your saved <a href="/settings">settings</a>. Changes on this page apply to this run only.</p>
+  <p class="muted lead">Everything here is filled in from your saved <a href="{{ base }}/settings">settings</a>. Changes on this page apply to this run only.</p>
 
   {% if active %}
-  <div class="banner">A video is already being made. <a href="/runs/{{ active.id }}">Open the run</a></div>
+  <div class="banner">A video is already being made. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>
   {% endif %}
   {% if not has_key %}
-  <div class="banner bad">Add your OpenAI key before making a video. <a href="/connections">Open Connections</a></div>
+  <div class="banner bad">Add your OpenAI key before making a video. <a href="{{ base }}/connections">Open Connections</a></div>
   {% endif %}
 
   <form id="create-form" class="create" data-cost='{{ d.cost | tojson | forceescape }}' data-left="{{ left }}" data-extra="{{ extra_lang }}" data-signed="{{ 1 if can_upload else 0 }}">
@@ -27,7 +27,7 @@
           {% for key, label in sources.items() %}
           <label class="choice"><input type="radio" name="source" value="{{ key }}" {{ 'checked' if loop.first else '' }}>
             <span><strong>{{ label }}</strong>
-              {% if key == 'queue' %}<span class="hint">{% if next_topic %}Next up: {{ next_topic }} ({{ queued }} waiting){% else %}The queue is empty, so AI Eye writes new ideas.{% endif %} <a href="/topics">Manage topics</a></span>
+              {% if key == 'queue' %}<span class="hint">{% if next_topic %}Next up: {{ next_topic }} ({{ queued }} waiting){% else %}The queue is empty, so AI Eye writes new ideas.{% endif %} <a href="{{ base }}/topics">Manage topics</a></span>
               {% elif key == 'trending' %}<span class="hint">Picks something people are looking at now, suitable for a facts Short.</span>
               {% elif key == 'top' %}<span class="hint">Rotates through your top categories, with photo-real close-ups.</span>
               {% else %}<span class="hint">One video about your idea. AI Eye rewrites it into a clear question.</span>{% endif %}</span></label>
@@ -57,7 +57,7 @@
         <div class="fields">
           <div class="field"><label for="f-upload_privacy">Who can watch it</label>
             <select id="f-upload_privacy" name="upload_privacy">{% for opt in d.choices.upload_privacy %}<option value="{{ opt }}" {{ 'selected' if d['values'].upload_privacy == opt else '' }}>{{ 'none: make the video but do not upload' if opt == 'none' else opt }}</option>{% endfor %}</select>
-            {% if not can_upload %}<p class="hint">YouTube is not connected, so an upload will fail. <a href="/connections#youtube">Connect YouTube</a> or choose none.</p>{% endif %}</div>
+            {% if not can_upload %}<p class="hint">YouTube is not connected, so an upload will fail. <a href="{{ base }}/connections#youtube">Connect YouTube</a> or choose none.</p>{% endif %}</div>
           <label class="inline"><input type="checkbox" id="f-review" {{ 'checked' if d.review else '' }}> Review the video before it uploads</label>
           <p class="hint" id="review-hint">You see the finished video, can edit the title, description and tags, then choose to upload or skip. Turn this off to upload as soon as it is made.</p>
         </div>

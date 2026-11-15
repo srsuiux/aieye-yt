@@ -20,6 +20,13 @@ Every part of the app has its own address, so you can bookmark it and use the ba
 
 The video experiments (Studio) arrive in a later update. This page lists only what exists today.
 
+## Addresses
+
+Pages live under your channel handle, the same way YouTube does it: `http://localhost:8420/@YourHandle/create`,
+`/@YourHandle/library`, and so on. Set your handle on the **Channel** page. Until you do, pages live under `/new`, for example
+`http://localhost:8420/new/create`. Saving a handle moves you to the new address, and old or unprefixed addresses redirect to the
+right one, so bookmarks keep working.
+
 ## Your first visit and the tour
 
 On a brand-new install (no OpenAI key, no saved settings, nothing made yet) the Home page opens with a **Welcome** card and a

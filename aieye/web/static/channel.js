@@ -11,7 +11,7 @@
     };
     aieye.api("PUT", "/api/channel", body).then(function (d) {
       note.textContent = d.message || "Could not save."; note.className = "note " + (d.ok ? "ok" : "bad");
-      if (d.ok) aieye.toast("Channel saved");
+      if (d.ok) { aieye.toast("Channel saved"); if (d.base && d.base !== (document.body.dataset.base || "")) setTimeout(function () { location.href = d.base + "/channel"; }, 900); }
     });
   });
   q("#c-audience-reset").addEventListener("click", function () {

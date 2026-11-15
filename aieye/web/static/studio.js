@@ -75,7 +75,7 @@
   $("yes").addEventListener("click", function () {
     $("yes").disabled = true;
     aieye.api("POST", "/api/studio", params()).then(function (d) {
-      if (d.ok) { location.href = "/runs/" + d.job; return; }
+      if (d.ok) { location.href = aieye.url("/runs/" + d.job); return; }
       note(d.message || "Could not start."); $("yes").disabled = false; $("confirm").hidden = true; $("go").hidden = false;
     });
   });

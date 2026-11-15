@@ -4,7 +4,7 @@
   <h1>Library</h1>
   <p class="muted lead">Videos that were made but not uploaded stay here until you upload or delete them.</p>
 
-  {% if active %}<div class="banner">A video is being made. <a href="/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+  {% if active %}<div class="banner">A video is being made. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
 
   <h2 class="section-title">Waiting to upload <span class="muted">({{ kept | length }})</span></h2>
   {% if kept %}
@@ -22,13 +22,13 @@
         <p class="muted small">{{ v.lang }} · made {{ v.when }} · {{ v.size }} MB</p>
         <div class="actions"><button class="btn k-upload" type="button" {{ '' if (can_upload and not active) else 'disabled' }}>Upload to YouTube</button>
           <button class="btn ghost danger k-delete" type="button">Delete video</button><span class="note k-note"></span></div>
-        {% if not can_upload %}<p class="hint">YouTube is not connected. <a href="/connections#youtube">Connect YouTube</a> to upload.</p>{% endif %}
+        {% if not can_upload %}<p class="hint">YouTube is not connected. <a href="{{ base }}/connections#youtube">Connect YouTube</a> to upload.</p>{% endif %}
       </div>
     </article>
     {% endfor %}
   </div>
   {% else %}
-  <div class="empty"><p>Nothing is waiting. Videos made with upload set to none, skipped at review, or whose upload failed appear here.</p><a class="btn" href="/create">Make a video</a></div>
+  <div class="empty"><p>Nothing is waiting. Videos made with upload set to none, skipped at review, or whose upload failed appear here.</p><a class="btn" href="{{ base }}/create">Make a video</a></div>
   {% endif %}
 
   <h2 class="section-title">Uploaded</h2>
@@ -44,7 +44,7 @@
 
   <h2 class="section-title">Recent runs</h2>
   {% if recent %}
-  <ul class="plain">{% for r in recent %}<li><a href="/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else ('Studio ' ~ r.params.tool if r.kind == 'studio' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else ''))) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
+  <ul class="plain">{% for r in recent %}<li><a href="{{ base }}/runs/{{ r.id }}">{{ r.id }} · {{ 'upload' if r.kind == 'upload' else ('Studio ' ~ r.params.tool if r.kind == 'studio' else (r.params.count ~ ' video' ~ ('s' if r.params.count > 1 else ''))) }}</a><span class="status {{ 'ok' if r.state == 'done' else ('bad' if r.state == 'failed' else '') }}">{{ r.state }}</span></li>{% endfor %}</ul>
   {% else %}<p class="muted">No runs yet.</p>{% endif %}
 </div>
 {% endblock %}

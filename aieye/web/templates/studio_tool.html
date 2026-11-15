@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page">
-  <p class="crumbs"><a href="/studio">Studio</a> <span aria-hidden="true">/</span> {{ t.label }}</p>
+  <p class="crumbs"><a href="{{ base }}/studio">Studio</a> <span aria-hidden="true">/</span> {{ t.label }}</p>
   <h1>{{ t.title }}</h1>
   <p class="muted lead">{{ t.blurb }}</p>
-  {% if active %}<div class="banner">Something is already running. <a href="/runs/{{ active.id }}">Open the run</a></div>{% endif %}
-  {% if missing %}<div class="banner bad">Add your {% for k in missing %}{{ 'OpenAI' if k.startswith('OPENAI') else 'OpenRouter' }}{% if not loop.last %} and {% endif %}{% endfor %} key first. <a href="/connections">Open Connections</a>{% if 'OPENROUTER_API_KEY' in missing %} (<a href="/docs/get-openrouter-key">how to get one</a>){% endif %}</div>{% endif %}
+  {% if active %}<div class="banner">Something is already running. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+  {% if missing %}<div class="banner bad">Add your {% for k in missing %}{{ 'OpenAI' if k.startswith('OPENAI') else 'OpenRouter' }}{% if not loop.last %} and {% endif %}{% endfor %} key first. <a href="{{ base }}/connections">Open Connections</a>{% if 'OPENROUTER_API_KEY' in missing %} (<a href="{{ base }}/docs/get-openrouter-key">how to get one</a>){% endif %}</div>{% endif %}
   {% if err %}<div class="banner bad">{{ err }}</div>{% endif %}
 
   <form id="studio-form" class="create" data-tool="{{ tool }}" data-prices='{{ prices | tojson | forceescape }}'
@@ -26,8 +26,8 @@
         <div class="picker" role="radiogroup" aria-label="Start picture">
           {% for s in stills %}<label class="pick"><input type="radio" name="image" value="{{ s.name }}" {{ 'checked' if loop.first }}><img src="{{ s.url }}" alt="{{ s.name }}" loading="lazy"></label>{% endfor %}
         </div>
-        <p class="hint">Newest first. Make more on the <a href="/studio/stills">Stills</a> page.</p>
-        {% else %}<div class="empty"><p>No pictures yet. A clip starts from a picture.</p><a class="btn" href="/studio/stills">Make a picture</a></div>{% endif %}</section>
+        <p class="hint">Newest first. Make more on the <a href="{{ base }}/studio/stills">Stills</a> page.</p>
+        {% else %}<div class="empty"><p>No pictures yet. A clip starts from a picture.</p><a class="btn" href="{{ base }}/studio/stills">Make a picture</a></div>{% endif %}</section>
       <section class="panel"><h2>Motion</h2>
         <div class="field"><label for="f-prompt">What should move</label><textarea id="f-prompt" rows="3" maxlength="400" placeholder="slow push-in, the fox turns its head toward the camera"></textarea></div>
         <div class="fields two">

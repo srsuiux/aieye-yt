@@ -21,7 +21,7 @@
       <button class="btn ghost danger" type="button" data-remove {{ '' if k.set else 'disabled' }}>Remove</button>
     </form>
     <p class="note" data-note></p>
-    <p class="small"><a href="/docs/{{ 'get-openai-key' if k.name == 'OPENAI_API_KEY' else 'get-openrouter-key' }}">How to get this key</a></p>
+    <p class="small"><a href="{{ base }}/docs/{{ 'get-openai-key' if k.name == 'OPENAI_API_KEY' else 'get-openrouter-key' }}">How to get this key</a></p>
   </section>
   {% endfor %}
 
@@ -42,7 +42,7 @@
       </li>
     </ol>
     <p class="note" data-yt-note></p>
-    <p class="small"><a href="/docs/youtube-setup">Step by step: create the client file</a></p>
+    <p class="small"><a href="{{ base }}/docs/youtube-setup">Step by step: create the client file</a></p>
   </section>
 </div>
 {% endblock %}

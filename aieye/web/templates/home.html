@@ -6,7 +6,7 @@
   <section class="panel welcome">
     <h2>Welcome to AI Eye</h2>
     <p class="muted">It turns a topic into a finished YouTube Short: script, narration, pictures and captions. Start by adding your OpenAI key, which pays for the script, voice and pictures. YouTube is optional and can wait.</p>
-    <p><a class="btn" href="/connections">Add your OpenAI key</a> <button class="btn ghost" type="button" data-start-tour>Take the tour</button> <a class="btn ghost" href="/docs/install">Read the setup guide</a></p>
+    <p><a class="btn" href="{{ base }}/connections">Add your OpenAI key</a> <button class="btn ghost" type="button" data-start-tour>Take the tour</button> <a class="btn ghost" href="{{ base }}/docs/install">Read the setup guide</a></p>
   </section>
   {% endif %}
 
@@ -26,7 +26,7 @@
         {% for item in checklist %}
         <li class="{{ 'done' if item.done else '' }}">
           <span class="tick" aria-hidden="true">{{ '✓' if item.done else '' }}</span>
-          <div><a href="{{ item.href }}">{{ item.label }}</a><div class="muted small">{{ item.help }}</div></div>
+          <div><a href="{{ base }}{{ item.href }}">{{ item.label }}</a><div class="muted small">{{ item.help }}</div></div>
         </li>
         {% endfor %}
       </ul>
@@ -34,7 +34,7 @@
     <section class="panel">
       <h2>Make a video</h2>
       <p class="muted">Pick a topic, a language and a look, see the cost, then watch the video being made and review it before it uploads.</p>
-      <p><a class="btn" href="/create">Create a video</a> <a class="btn ghost" href="/library">Library</a></p>
+      <p><a class="btn" href="{{ base }}/create">Create a video</a> <a class="btn ghost" href="{{ base }}/library">Library</a></p>
     </section>
   </div>
 
@@ -55,7 +55,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then create your first video.</p><a class="btn" href="/connections">Open Connections</a> <a class="btn ghost" href="/create">Create a video</a></div>
+  <div class="empty"><p>No videos yet. Add your OpenAI key on the Connections page, then create your first video.</p><a class="btn" href="{{ base }}/connections">Open Connections</a> <a class="btn ghost" href="{{ base }}/create">Create a video</a></div>
   {% endif %}
 </div>
 {% endblock %}

@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/static/app.css">
 <script>try{var t=localStorage.getItem("aieye-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
-<body data-auto-tour="{{ 1 if auto_tour else 0 }}">
+<body data-base="{{ base }}" data-auto-tour="{{ 1 if auto_tour else 0 }}">
 {% macro icon(name) -%}
 <svg class="ico" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
 {%- if name == "home" %}<path d="M4 11.5 12 4l8 7.5V20h-5v-6H9v6H4z"/>
@@ -24,7 +24,7 @@
 {%- endmacro %}
 <header class="top">
   <button class="icon-btn" id="rail-toggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  <a class="brand" href="/" aria-label="AI Eye home"><span class="mark"><svg viewBox="0 0 32 32" width="30" height="22"><rect width="32" height="22" y="5" rx="6" fill="#f03"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">AI Eye</span></a>
+  <a class="brand" href="{{ base }}/" aria-label="AI Eye home"><span class="mark"><svg viewBox="0 0 32 32" width="30" height="22"><rect width="32" height="22" y="5" rx="6" fill="#f03"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">AI Eye</span></a>
   <span class="spacer"></span>
   <button class="icon-btn" id="tour-start" aria-label="Take the tour" title="Take the tour"><svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   <span class="chip {{ 'chip-warn' if remote else '' }}" title="{{ 'Reachable from your network' if remote else 'Only this computer can open this page' }}">{{ 'Network access on' if remote else 'Local only' }}</span>
@@ -33,7 +33,7 @@
 <div class="shell">
   <nav class="rail" aria-label="Main">
     {% for n in nav %}
-    <a href="{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span></a>
+    <a href="{{ base }}{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span></a>
     {% endfor %}
   </nav>
   <main id="main">{% block content %}{% endblock %}</main>

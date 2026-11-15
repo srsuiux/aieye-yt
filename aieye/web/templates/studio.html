@@ -3,10 +3,10 @@
 <div class="page">
   <h1>Studio</h1>
   <p class="muted lead">Experiments with AI video, for trying ideas before you use them in a real video. Nothing here touches your topic queue, your daily upload limit or YouTube.</p>
-  {% if active %}<div class="banner">Something is running. <a href="/runs/{{ active.id }}">Open the run</a></div>{% endif %}
+  {% if active %}<div class="banner">Something is running. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
   <div class="tools">
     {% for key, t in tools.items() %}
-    <a class="panel tool" href="/studio/{{ key }}">
+    <a class="panel tool" href="{{ base }}/studio/{{ key }}">
       <h2>{{ t.title }}</h2>
       <p>{{ t.blurb }}</p>
       <p class="muted small">Cost: {{ t.cost }}.{% for k in t.needs if not keys[k] %}{% if loop.first %} Needs {% endif %}{{ 'an OpenAI key' if k.startswith('OPENAI') else 'an OpenRouter key' }}{% if not loop.last %} and {% endif %}{% endfor %}</p>
@@ -24,7 +24,7 @@
   </div>
   {% if recent.scripts %}<ul class="plain">{% for f in recent.scripts %}<li><a href="{{ f.url }}" target="_blank" rel="noopener">Script · {{ f.when }}</a></li>{% endfor %}</ul>{% endif %}
   {% else %}
-  <div class="empty"><p>Nothing yet. Start with Stills: it is the cheapest tool and the pictures feed the Clip tool.</p><a class="btn" href="/studio/stills">Make pictures</a></div>
+  <div class="empty"><p>Nothing yet. Start with Stills: it is the cheapest tool and the pictures feed the Clip tool.</p><a class="btn" href="{{ base }}/studio/stills">Make pictures</a></div>
   {% endif %}
 </div>
 {% endblock %}

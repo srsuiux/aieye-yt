@@ -2,6 +2,7 @@
 (function () {
   var $ = function (s, r) { return (r || document).querySelector(s); };
   window.aieye = {
+    url: function (p) { return (document.body.dataset.base || "") + p; },   // pages live under /@handle (or /new)
     api: function (method, url, body) {
       return fetch(url, { method: method, headers: { "Content-Type": "application/json", "X-Requested-With": "aieye" },
                           body: body === undefined ? undefined : JSON.stringify(body) })

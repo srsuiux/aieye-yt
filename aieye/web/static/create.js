@@ -54,7 +54,7 @@
   q("#confirm-go").addEventListener("click", function () {
     var btn = q("#confirm-go"); btn.disabled = true; btn.textContent = "Starting…";
     aieye.api("POST", "/api/jobs", params()).then(function (d) {
-      if (d.ok) { location.href = "/runs/" + d.job; return; }
+      if (d.ok) { location.href = aieye.url("/runs/" + d.job); return; }
       q("#form-error").textContent = d.message || "Could not start."; q("#confirm").hidden = true; q("#go").hidden = false;
       btn.disabled = false; btn.textContent = "Start and spend";
     });

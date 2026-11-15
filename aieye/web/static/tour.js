@@ -76,7 +76,7 @@
 
   function next() { if (i < STEPS.length - 1) { i++; render(); } }
   function back() { if (i > 0) { i--; render(); } }
-  function finish() { end("done"); if (!hasKey) location.href = "/connections"; }
+  function finish() { end("done"); if (!hasKey) location.href = aieye.url("/connections"); }
   function end(state) {
     save(state);
     document.body.classList.remove("rail-open");

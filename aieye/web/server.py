@@ -1,5 +1,5 @@
 """`aieye web`: a local web app. Bound to 127.0.0.1 by default; anything wider needs --host and asks for a token."""
-import json, secrets, shutil, threading, webbrowser
+import json, re, secrets, shutil, threading, webbrowser
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -20,6 +20,9 @@ from . import connections, data, docs, jobs, studio
 HERE = Path(__file__).resolve().parent
 DEFAULT_PORT = 8420
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+PAGE_ROOTS = {"", "create", "runs", "library", "topics", "channel", "settings", "connections", "docs", "studio"}
+ASSET_PATHS = ("/static", "/api", "/studio/file", "/library/video", "/jobs")
 
 NAV = [   # the rail: only pages that exist are listed
     {"href": "/",            "label": "Home",        "icon": "home"},
@@ -45,7 +48,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
     allowed_hosts = set(LOCAL_HOSTS) | ({bind_host} if bind_host not in ("0.0.0.0", "::") else set())
 
     def page(request, name, status=200, **ctx):
-        ctx.update(voice_label=voice_label, voice_info=VOICE_INFO, nav=NAV, path=request.url.path, remote=bool(token), request=request,
+        ctx.update(base=data.url_prefix(), voice_label=voice_label, voice_info=VOICE_INFO, nav=NAV, path=request.url.path, remote=bool(token), request=request,
                    auto_tour=(request.url.path == "/" and data.is_fresh_install()))
         return templates.TemplateResponse(request, name, ctx, status_code=status)
 
@@ -62,6 +65,15 @@ def create_app(token=None, bind_host="127.0.0.1"):
                 return JSONResponse({"error": "Cross-site request blocked"}, status_code=403)
             if request.headers.get("x-requested-with") != "aieye":
                 return JSONResponse({"error": "Missing header"}, status_code=403)
+        path, prefix = request.url.path, data.url_prefix()
+        if path == prefix or path.startswith(prefix + "/"):     # /@handle/create is served by the /create page
+            request.scope["path"] = path[len(prefix):] or "/"
+            request.scope["raw_path"] = request.scope["path"].encode()
+        elif request.method == "GET" and not path.startswith(ASSET_PATHS):
+            m = re.match(r"/(@[^/]*|new)(/.*)?$", path)         # an old or wrong prefix, or none: send to the right address
+            rest = (m.group(2) or "/") if m else path
+            if rest.split("/")[1] in PAGE_ROOTS or rest == "/":
+                return RedirectResponse(prefix + rest + (("?" + request.url.query) if request.url.query else ""))
         if token:
             given = request.query_params.get("token")
             if given == token:
@@ -182,7 +194,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
 
     @app.get("/docs", response_class=HTMLResponse)
     def docs_index(request: Request):
-        return RedirectResponse("/docs/overview")
+        return RedirectResponse(data.url_prefix() + "/docs/overview")
 
     @app.get("/docs/{slug:path}", response_class=HTMLResponse)
     def docs_page(request: Request, slug: str):
@@ -190,6 +202,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
         if not doc:
             return page(request, "error.html", status=404, title="Not found",
                         message="That documentation page does not exist.", back=("/docs", "Back to the docs"))
+        doc["html"] = re.sub(r'href="/(?!static)', 'href="' + data.url_prefix() + '/', doc["html"])   # links inside the guides
         return page(request, "docs.html", title=doc["title"], doc=doc, docs_nav=docs.nav())
 
     # ── Library: videos kept on this computer ────────────────────────────────────────────────────────────────
@@ -394,7 +407,7 @@ def create_app(token=None, bind_host="127.0.0.1"):
             data.save_channel(await request.json())
         except ValueError as e:
             return bad(str(e))
-        return {"ok": True, "message": "Channel details saved."}
+        return {"ok": True, "message": "Channel details saved.", "base": data.url_prefix()}
 
     @app.post("/api/topics")
     async def api_add_topic(request: Request):

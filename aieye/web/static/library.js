@@ -10,7 +10,7 @@
       aieye.api("POST", "/api/library/upload", { id: item.dataset.id, meta: {
         title: one(item, ".k-title").value, description: one(item, ".k-desc").value, tags: one(item, ".k-tags").value.split(","), privacy: privacy } })
         .then(function (d) {
-          if (d.ok) { location.href = "/runs/" + d.job; return; }
+          if (d.ok) { location.href = aieye.url("/runs/" + d.job); return; }
           note.textContent = d.message || "Could not start the upload."; note.className = "note bad"; e.target.disabled = false;
         });
     });

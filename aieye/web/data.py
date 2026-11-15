@@ -1,5 +1,5 @@
 """Reading and writing the user's saved choices for the web app: defaults, advanced settings, channel, topic queue."""
-import json, time
+import re, json, time
 from datetime import datetime
 
 from .. import tuning
@@ -113,10 +113,21 @@ def channel_view():
             "audience_notes": f.get("audience_notes", DEFAULT_AUDIENCE_NOTES), "audience_default": "audience_notes" not in f,
             "top_categories": f.get("top_categories", DEFAULT_TOP_CATEGORIES), "categories_default": "top_categories" not in f}
 
+HANDLE_OK = re.compile(r"@[A-Za-z0-9._-]{3,30}")
+
+
+def url_prefix():
+    """Where every page lives: /@YourHandle once the channel handle is set on the Channel page, otherwise /new."""
+    h = (_channel_file().get("handle") or "").strip()
+    return "/" + h if HANDLE_OK.fullmatch(h) else "/new"
+
+
 def save_channel(v):
     handle = (v.get("handle") or "").strip()
     if handle and not handle.startswith("@"):
         handle = "@" + handle
+    if handle and not HANDLE_OK.fullmatch(handle):
+        raise ValueError("The handle can use letters, numbers, dots, dashes and underscores (3 to 30 characters), like @AIEyeFacts.")
     url = (v.get("url") or "").strip()
     if url and not url.startswith(("http://", "https://")):
         raise ValueError("The channel address must start with https://")
