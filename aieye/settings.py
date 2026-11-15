@@ -322,7 +322,7 @@ def setup_run(args):
     # ── Non-interactive: one command / one click ──────────
     if args.quick or args.batch:
         if not saved:
-            fail("No saved defaults yet. Run once:  python3 ysa-cli.py --setup")
+            fail("No saved defaults yet. Run once:  python3 aieye-cli.py --setup")
         CFG.update(saved)
         CFG["trending"] = getattr(args, "trending", False)
         CFG["top"] = getattr(args, "top", False)

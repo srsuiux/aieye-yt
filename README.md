@@ -14,8 +14,8 @@ git clone https://github.com/srsuiux/aieye-yt.git && cd aieye-yt
 pip install -r requirements.txt
 echo "OPENAI_API_KEY=sk-..." > .env               # your own key
 cp channel.example.json data/channel.json         # optional: your channel's name, tags, description
-python3 ysa-cli.py --setup                        # pick defaults once (use upload privacy "none" to just render)
-python3 ysa-cli.py --quick                        # make 1 video
+python3 aieye-cli.py --setup                        # pick defaults once (use upload privacy "none" to just render)
+python3 aieye-cli.py --quick                        # make 1 video
 ```
 
 Install the short `aieye` command with `ln -sf "$PWD/start-script.sh" ~/.local/bin/aieye`, then run `aieye help`.
@@ -78,7 +78,7 @@ echo "OPENAI_API_KEY=sk-..." > .env
 # (optional, experiments only) echo "OPENROUTER_API_KEY=sk-or-..." >> .env
 
 # 3. Choose your default settings (one time)
-python3 ysa-cli.py --setup
+python3 aieye-cli.py --setup
 ```
 
 The first video downloads the caption-timing model (~1.2 GB, once) into your torch cache.
@@ -181,12 +181,12 @@ If macOS blocks the first launch: right-click the file → Open.
 ### Command line
 
 ```bash
-python3 ysa-cli.py                       # interactive menu
-python3 ysa-cli.py --quick               # 1 video, saved defaults, no questions
-python3 ysa-cli.py --batch 3             # 3 videos (only 1 or 3 allowed), saved defaults
-python3 ysa-cli.py --quick --topic "Why Do We Yawn"   # custom topic (single video)
-python3 ysa-cli.py --quick --privacy none             # override privacy for this run only
-python3 ysa-cli.py --setup               # choose and save defaults, then exit
+python3 aieye-cli.py                       # interactive menu
+python3 aieye-cli.py --quick               # 1 video, saved defaults, no questions
+python3 aieye-cli.py --batch 3             # 3 videos (only 1 or 3 allowed), saved defaults
+python3 aieye-cli.py --quick --topic "Why Do We Yawn"   # custom topic (single video)
+python3 aieye-cli.py --quick --privacy none             # override privacy for this run only
+python3 aieye-cli.py --setup               # choose and save defaults, then exit
 ```
 
 | Flag | Meaning |
@@ -288,9 +288,9 @@ Everything below is a constant in `aieye/config.py` (or at the top of the module
 |---|---|
 | `insufficient_quota` / "no credits remaining" | Add credits at platform.openai.com → Billing. Newly added credits can take a few minutes; also check the key belongs to the same organisation/project. A batch stops itself when this happens. |
 | "Rate limit on scene … waiting Ns" | Normal: the image API limits how fast pictures can be requested. The pipeline waits and retries by itself. If it keeps happening, lower `IMAGE_WORKERS` to 1–2 or `MAX_SHOTS` to 2. |
-| `OPENAI_API_KEY not set` | Put it in `.env` in the project root (next to `ysa-cli.py`). |
+| `OPENAI_API_KEY not set` | Put it in `.env` in the project root (next to `aieye-cli.py`). |
 | `OPENROUTER_API_KEY is not set` / OpenRouter `402` | Experiments only. Add the key to `.env`, or add credits at openrouter.ai/credits. |
-| `No saved defaults yet` | Run `python3 ysa-cli.py --setup` once. |
+| `No saved defaults yet` | Run `python3 aieye-cli.py --setup` once. |
 | `ffprobe: command not found` | Install ffmpeg (`brew install ffmpeg`) so `ffprobe` is on your PATH. |
 | "Forced alignment unavailable … using estimated caption timing" | `torch`/`torchaudio` missing or the model couldn't download. Run `pip install torch torchaudio` and check your connection. Captions still work, just less precisely timed. |
 | Upload fails | The video is still saved in `data/output/`. Check `data/credentials/client_secrets.json`; delete `data/credentials/youtube_token.pickle` to re-authorise. |
@@ -316,7 +316,7 @@ All three, plus outputs and settings, are listed in `.gitignore`. If a key is ev
 ## Project layout
 
 ```
-ysa-cli.py                  entry point (python3 ysa-cli.py, or python3 -m aieye)
+aieye-cli.py                  entry point (python3 aieye-cli.py, or python3 -m aieye)
 aieye/                      the pipeline, one module per step
     config.py                 models, prices, channel info, file locations
     ui.py                     colours, logging, spinner, prompts
