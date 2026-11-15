@@ -1,7 +1,7 @@
 /* Welcome tour: a short walk through the pages, one step at a time. Skippable, reopenable with the ? button. */
 (function () {
   var STEPS = [
-    { title: "Welcome to AI Eye", body: "AI Eye turns a topic into a finished YouTube Short: script, narration, pictures and captions. This one-minute tour shows what each page is for. You can skip it at any time.", center: true },
+    { title: "Welcome to AI Eye", body: "AI Eye turns a topic into a finished YouTube Short: script, narration, pictures and captions. This one-minute tour shows what each page is for. You can skip it at any time. AI Eye is free MIT-licensed software with no warranty: you pay your providers for what you make and you are responsible for what you publish (see Terms and Privacy in the footer).", center: true },
     { target: "connections", title: "Connections: start here", body: "Save your OpenAI key, which pays for the script, voice and pictures. Add YouTube later if you want uploads. Keys stay on this computer." },
     { target: "settings", title: "Settings", body: "Your defaults: picture style and quality, who can watch uploads, and the narrator. Advanced holds the models, the look of the video and the daily upload limit." },
     { target: "channel", title: "Channel", body: "Your channel's name, description and tags, added to every upload, plus notes on who your videos are for so topic ideas fit." },

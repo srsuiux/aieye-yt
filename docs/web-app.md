@@ -82,3 +82,10 @@ The app then prints a link that contains a random access token. The badge change
 ## Theme
 
 The moon button in the top bar switches between light and dark. By default the app follows your system setting.
+
+## Notices in the app
+
+The key points of [Privacy](/docs/privacy), [Terms of use](/docs/terms) and [Copyright and content](/docs/copyright) are shown
+where they matter: on Connections (where each key is sent, keep it secret, YouTube terms), on Create and Studio (this spends real
+money; what is sent to which company), before upload in the review step and the Library (check the facts, label AI content), in
+the welcome card and tour, and in the footer of every page.

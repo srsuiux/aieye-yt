@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_notes.html" import before_publish, spends_money %}
 {% block content %}
 <div class="page">
   <h1>Create</h1>
@@ -62,6 +63,7 @@
           <p class="hint" id="review-hint">You see the finished video, can edit the title, description and tags, then choose to upload or skip. Turn this off to upload as soon as it is made.</p>
         </div>
       </section>
+      {{ before_publish() }}
     </div>
 
     <aside class="create-side">
@@ -72,6 +74,7 @@
         <p class="small" id="limit-note"></p>
         <p class="note warn-note" id="pub-warn" hidden></p>
         <p class="note bad" id="form-error"></p>
+        {{ spends_money() }}
         <button class="btn wide" type="submit" id="go" {{ 'disabled' if (active or not has_key) else '' }}>Make video</button>
         <div id="confirm" class="confirm" hidden>
           <p><strong id="confirm-text"></strong></p>

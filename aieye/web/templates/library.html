@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
 {% block content %}
 <div class="page">
   <h1>Library</h1>
@@ -6,6 +7,7 @@
 
   {% if active %}<div class="banner">A video is being made. <a href="{{ base }}/runs/{{ active.id }}">Open the run</a></div>{% endif %}
 
+  {% if kept %}{{ before_publish() }}{% endif %}
   <h2 class="section-title">Waiting to upload <span class="muted">({{ kept | length }})</span></h2>
   {% if kept %}
   <div class="kept">

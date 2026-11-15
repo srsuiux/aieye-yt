@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
 {% block content %}
 <div class="page" id="run" data-id="{{ st.id }}" data-kind="{{ st.kind }}" data-review="{{ 1 if st.params.review else 0 }}"
      data-upload="{{ 1 if (st.kind == 'upload' or st.params.upload_privacy != 'none') else 0 }}" data-state="{{ st.state }}">
@@ -31,6 +32,7 @@
           <select id="r-privacy">{% for p in privacies %}<option value="{{ p }}">{{ p }}</option>{% endfor %}</select></div>
         <div class="actions"><button class="btn" id="r-upload" type="button">Upload to YouTube</button>
           <button class="btn ghost" id="r-skip" type="button">Skip upload, keep the video</button><span class="note" id="r-note"></span></div>
+        {{ before_publish() }}
         <p class="hint">Skipped videos stay in the <a href="{{ base }}/library">Library</a>, where you can upload them later.</p>
       </div>
     </div>

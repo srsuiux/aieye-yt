@@ -20,7 +20,7 @@
           </option>
           {% endfor %}
         </select>
-        <p class="hint">Author's default: <strong>{{ d.fallback[key] }}</strong>. {{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI and are billed to your OpenAI key.{% endif %}</p>
+        <p class="hint">Author's default: <strong>{{ d.fallback[key] }}</strong>. {{ d.info[key][1] }}{% if key == 'tts_voice' %} Every voice is listed with the company that provides it. All current voices come from OpenAI, are synthetic (computer-made), and are billed to your OpenAI key. Say so where a platform asks.{% endif %}</p>
       </div>
       {% endfor %}
       <div class="field"><label class="inline"><input type="checkbox" id="d-review" {{ 'checked' if d.review else '' }}> Review each video before it uploads</label>

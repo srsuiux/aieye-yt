@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_notes.html" import before_publish %}
 {% block content %}
 <div class="page">
   <h1>Connections</h1>
@@ -21,6 +22,8 @@
       <button class="btn ghost danger" type="button" data-remove {{ '' if k.set else 'disabled' }}>Remove</button>
     </form>
     <p class="note" data-note></p>
+    <p class="legal-note">{% if k.name == 'OPENAI_API_KEY' %}Sent only to OpenAI, and used for scripts, voice and pictures.{% else %}Sent only to OpenRouter, and used for Studio video clips.{% endif %}
+      Keep it secret: anyone who has it can spend your money. Set a spending limit in your {{ 'OpenAI' if k.name == 'OPENAI_API_KEY' else 'OpenRouter' }} account.</p>
     <p class="small"><a href="{{ base }}/docs/{{ 'get-openai-key' if k.name == 'OPENAI_API_KEY' else 'get-openrouter-key' }}">How to get this key</a></p>
   </section>
   {% endfor %}
@@ -41,6 +44,10 @@
         <button class="btn ghost danger" id="yt-signout" {{ '' if yt.signed_in else 'disabled' }}>Sign out</button></div>
       </li>
     </ol>
+    <p class="legal-note">Uploads go to your own channel through your own Google project. You must follow the
+      <a href="https://developers.google.com/youtube/terms/api-services-terms-of-service" target="_blank" rel="noopener">YouTube API Services Terms</a> and YouTube's policies.
+      Signing out removes the sign-in from this computer; to cancel the permission, also remove AI Eye in your Google account's security settings.
+      <a href="{{ base }}/docs/privacy">Privacy</a></p>
     <p class="note" data-yt-note></p>
     <p class="small"><a href="{{ base }}/docs/youtube-setup">Step by step: create the client file</a></p>
   </section>
