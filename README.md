@@ -337,13 +337,13 @@ aieye/                      the pipeline, one module per step
     ffmpeg.py                 ffmpeg lookup / runner
     youtube.py                step 5  upload
     pipeline.py               run_one / main, cleanup after posting
+    tuning.py                 advanced settings: defaults, limits, validation (your changes: data/config.json)
     imgexp.py                 experiment  -img   stills
     videxp.py                 experiment  -vid   image-to-video via OpenRouter, model list and prices
     scriptlab.py              experiment  -script   research, draft, critic, revise
     film.py                   experiment  -film   full text-to-video pipeline, clip QA, final merge
     menu.py                   experiment  menu   guided AI video studio
 aieye/web/                  the web app: server.py (routes + guard), data.py (settings/channel/topics), connections.py, docs.py, templates/, static/
-    tuning.py                 advanced settings: defaults, limits and validation (your changes: data/config.json)
 docs/                       documentation as Markdown (docs/nav.json = order); served at /docs by the web app
 launchers/                  double-click launchers (macOS)
 start-script.sh             the `aieye` command (symlinked to ~/.local/bin/aieye)
