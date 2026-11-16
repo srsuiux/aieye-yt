@@ -79,7 +79,7 @@ def save_defaults():
     SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(SETTINGS_FILE, "w") as f:
         json.dump(data, f, indent=2)
-    ok(f"Defaults saved → {SETTINGS_FILE.name}")
+    ok(f"Defaults saved to {SETTINGS_FILE.name}")
 
 def describe(cfg, batch=False):
     privacy = {"none": "no upload"}.get(cfg["upload_privacy"], cfg["upload_privacy"])
@@ -186,7 +186,7 @@ def print_run_config(count):
     print(f"  Est. cost  {c(total, 'yellow')}" + (c(f"  (~${per:.2f} each)", "dim") if count > 1 else ""))
     if CFG["upload_privacy"] == "public":
         who, when = ("These", "they finish") if count > 1 else ("This", "it finishes")
-        print(c(f"  ⚠  {who} will be published publicly as soon as {when}.", "yellow"))
+        print(c(f"  Note: {who} will be published publicly as soon as {when}.", "yellow"))
     print(c("  ────────────────────────────────────────────────", "cyan"))
     print()
 
@@ -195,7 +195,7 @@ def confirm_start(wait=None):
     try:
         if wait:
             for s in range(wait, 0, -1):
-                print(f"\r  {c('Starting in', 'bold')} {c(str(s), 'yellow')}{c('…  (Ctrl+C to cancel)', 'dim')}   ", end="", flush=True)
+                print(f"\r  {c('Starting in', 'bold')} {c(str(s), 'yellow')}{c('...  (Ctrl+C to cancel)', 'dim')}   ", end="", flush=True)
                 time.sleep(1)
             print()
         else:

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title }} · {{ brand }}</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f03'/%3E%3Cpath d='M12 9l11 7-11 7z' fill='%23fff'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/static/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23f03'/%3E%3Cpath fill='%23fff' d='M43.5 44H56.5C56 58 56.5 70 60 80C62 86 65 92 69 100H31C35 92 38 86 40 80C43.5 70 44 58 43.5 44Z'/%3E%3Ccircle cx='50' cy='26' r='12.5' fill='%23fff'/%3E%3Ccircle cx='50' cy='26' r='6' fill='%230b0b0b'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ asset('app.css') }}">
 <script>try{var t=localStorage.getItem("aieye-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body data-base="{{ base }}" data-auto-tour="{{ 1 if auto_tour else 0 }}">
@@ -25,11 +25,9 @@
 {%- endmacro %}
 <header class="top">
   <button class="icon-btn" id="rail-toggle" aria-label="Toggle menu"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  <a class="brand" href="{{ base }}/" aria-label="{{ brand }} home"><span class="mark"><svg viewBox="0 0 32 32" width="30" height="22"><rect width="32" height="22" y="5" rx="6" fill="#f03"/><path d="M13 11l8 5-8 5z" fill="#fff"/></svg></span><span class="word">{{ brand }}</span></a><span class="badge-tag">Shorts for YouTube</span>
+  <a class="brand" href="{{ base }}/" aria-label="{{ brand }} home"><span class="eye brand-mark" aria-hidden="true"></span><span class="word">{{ brand }}</span></a>
   <span class="spacer"></span>
-  <a class="powered" href="https://github.com/srsuiux/aieye-yt" target="_blank" rel="noopener">Powered by <strong>aieye-yt</strong></a>
   <button class="icon-btn" id="tour-start" aria-label="Take the tour" title="Take the tour"><svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-  <span class="chip {{ 'chip-warn' if remote else '' }}" title="{{ 'Reachable from your network' if remote else 'Only this computer can open this page' }}">{{ 'Network access on' if remote else 'Local only' }}</span>
   <button class="icon-btn" id="theme-toggle" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor"/></svg></button>
 </header>
 <div class="shell">
@@ -37,14 +35,19 @@
     {% for n in nav %}
     <a href="{{ base }}{{ n.href }}" data-tour="{{ n.label | lower }}" class="rail-item {{ 'on' if (path == n.href or (n.href != '/' and path.startswith(n.href))) else '' }}">{{ icon(n.icon) }}<span>{{ n.label }}</span>{% if n.badge %}<em class="beta">{{ n.badge }}</em>{% endif %}</a>
     {% endfor %}
+    <div class="rail-card">
+      <span class="rc-badge">Shorts for YouTube</span>
+      <a class="rc-powered" href="https://github.com/srsuiux/aieye-yt" target="_blank" rel="noopener">Powered by <strong>aieye-yt</strong></a>
+      <span class="rc-net {{ 'warn' if remote else '' }}" title="{{ 'Reachable from your network' if remote else 'Only this computer can open this page' }}">{{ 'Network access on' if remote else 'Local only' }}</span>
+    </div>
   </nav>
   <main id="main">{% block content %}{% endblock %}
     <footer class="foot"><a href="{{ base }}/docs/privacy">Privacy</a><a href="{{ base }}/docs/terms">Terms</a><a href="{{ base }}/docs/copyright">Copyright</a><a href="{{ base }}/docs/license">MIT License</a><span>Not affiliated with YouTube, Google or OpenAI.</span></footer>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/app.js"></script>
-<script src="/static/tour.js"></script>
+<script src="{{ asset('app.js') }}"></script>
+<script src="{{ asset('tour.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

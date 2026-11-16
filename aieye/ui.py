@@ -1,4 +1,5 @@
 import sys, time, threading
+from pathlib import Path
 from datetime import datetime
 
 # COLOURS & LOGGING
@@ -48,6 +49,20 @@ class AieyeError(SystemExit):
         super().__init__(1)
         self.message = message
 
+def artifact(kind, path=None, **data):
+    """Tell a UI about something the run just made (script, image, video) so it can preview it. `path` is sent relative
+    to the output folder; the web server only serves files inside it."""
+    if not _listeners:
+        return
+    rel = None
+    if path is not None:
+        try:
+            from .config import OUTPUT_DIR
+            rel = str(Path(path).resolve().relative_to(Path(OUTPUT_DIR).resolve()))
+        except Exception:
+            rel = None
+    emit("artifact", what=kind, path=rel, **data)
+
 def log(msg, color="reset", indent=0):
     ts = datetime.now().strftime("%H:%M:%S")
     print(f"{c(f'[{ts}]','dim')} {'  '*indent}{c(msg, color)}")
@@ -60,11 +75,11 @@ def section(title):
     print(c(f"  {title}", "bold"))
     print(c("─"*60, "cyan"))
 
-def ok(msg):   log(f"✅  {msg}", "green")
-def warn(msg): log(f"⚠️   {msg}", "yellow")
-def skip(msg): log(f"⏭   {msg} (cached)", "dim")
+def ok(msg):   log(msg, "green")
+def warn(msg): log(f"Warning: {msg}", "yellow")
+def skip(msg): log(f"{msg} (cached)", "dim")
 def fail(msg):
-    log(f"❌  {msg}", "red")
+    log(f"Error: {msg}", "red")
     raise AieyeError(msg)
 
 # SPINNER — shows while any blocking call runs
@@ -110,7 +125,7 @@ def prompt_choice(question, choices):
     print()
     while True:
         try:
-            raw = input(c("  → Enter number (q to quit): ", "yellow")).strip()
+            raw = input(c("  Enter number (q to quit): ", "yellow")).strip()
             if raw.lower() in ("q", "quit", "exit"):
                 raise KeyboardInterrupt
             idx = int(raw) - 1
@@ -118,13 +133,13 @@ def prompt_choice(question, choices):
                 label, value, _ = choices[idx]
                 ok(f"Selected: {label}")
                 return value
-            print(c("  Invalid choice — try again", "red"))
+            print(c("  Invalid choice, try again", "red"))
         except (KeyboardInterrupt, EOFError):
             print()
             print(c("  Cancelled.", "dim"))
             sys.exit(0)
         except ValueError:
-            print(c("  Invalid — type a number, or q to quit", "red"))
+            print(c("  Type a number, or q to quit", "red"))
 
 def prompt_text(question, default=None):
     """Free text input. Returns None if blank and default is None."""
@@ -132,7 +147,7 @@ def prompt_text(question, default=None):
     hint = f" (leave blank to {default or 'skip'})" if default else " (leave blank to skip)"
     print(c(f"  {question}{hint}", "bold"))
     try:
-        raw = input(c("  → ", "yellow")).strip()
+        raw = input(c("  > ", "yellow")).strip()
         return raw if raw else default
     except (KeyboardInterrupt, EOFError):
         print()

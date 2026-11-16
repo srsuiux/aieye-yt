@@ -38,7 +38,10 @@ asks you to press **Start and spend**. Only then does the run start.
 After you confirm, you are taken to the run page at `/runs/<id>`. It updates every second.
 
 - **Steps:** Choose the topic, Write the script, Draw the pictures, Record the narration, Build the video, Your review (if on),
-  Upload to YouTube (if uploading). The current step spins; finished steps are ticked.
+  Upload to YouTube (if uploading). Each step is a small agent card (Scout, Writer, Illustrator, Narrator, Editor, Publisher)
+  that shows what it is doing right now, with its recent log lines. Click a finished card to see everything it did.
+- **Live preview:** on a wide screen, a phone-shaped preview sits on the right. It shows the script as soon as it is written,
+  then each picture as it is drawn, then the finished video. On a narrow screen it moves above the steps.
 - **Progress bar and cost:** the red bar fills as steps finish. Cost so far is the real cost reported by the services.
 - **Details:** open it to read the full log of what is happening.
 - **Batches and languages:** a "Video 2 of 3" label shows which video is being made, and the language when you chose more than one.

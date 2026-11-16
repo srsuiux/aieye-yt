@@ -101,8 +101,7 @@ def run_upload(job, job_dir):
     """Upload a video that was kept on disk (not uploaded earlier). Records the YouTube id in the history."""
     import shutil
     from .config import CFG
-    from .store import load_db, save_db
-    from .config import FINAL_DB
+    from .store import record_upload
     from .youtube import upload_to_youtube
     p = job["params"]
     folder = Path(p["folder"])
@@ -112,13 +111,8 @@ def run_upload(job, job_dir):
     vid = upload_to_youtube(video, meta)
     if not vid:
         ui.fail("The upload did not go through. The video is still saved.")
-    final = load_db(FINAL_DB)
     title = meta["title"].replace(" #Shorts", "")
-    for e in reversed(final):
-        if e.get("title") == title and not e.get("youtube_id") and not e.get("youtube_ids"):
-            e["youtube_id"] = vid
-            break
-    save_db(FINAL_DB, final)
+    record_upload(meta.get("history_id"), title, meta.get("topic"), meta.get("lang") or "en", vid)
     ui.ok(f"Recorded in your history: https://youtube.com/shorts/{vid}")
     shutil.rmtree(folder, ignore_errors=True)
     return [{"ok": True, "title": title, "url": f"https://youtube.com/shorts/{vid}", "cost": 0.0, "error": None}]

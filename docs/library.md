@@ -24,7 +24,8 @@ The upload button is disabled while another run is in progress, or when YouTube 
 [Connections page](/docs/connections).
 
 !!! note
-    The 3-videos-a-day limit counts videos pushed to YouTube, including uploads from here.
+    The 3-videos-a-day limit counts videos pushed to YouTube, including uploads from here. A video counts on the day it
+    reaches YouTube, not the day it was made. An uploaded video then shows under **Uploaded** and in **Recent videos** on Home.
 
 ## Uploaded
 

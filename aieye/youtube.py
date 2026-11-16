@@ -47,7 +47,7 @@ def get_youtube_creds(secrets, token, force_reauth=False):
 
     with open(token, "wb") as f:
         pickle.dump(creds, f)
-    ok("OAuth token saved → data/credentials/")
+    ok("OAuth token saved in data/credentials/")
     return creds
 
 def upload_to_youtube(video_path, meta):
@@ -121,7 +121,7 @@ def upload_to_youtube(video_path, meta):
             continue
         if status:
             pct = int(status.progress() * 100)
-            print(f"\r  {c('↑','cyan')} Uploading... {c(str(pct)+'%','yellow')}   ", end="", flush=True)
+            print(f"\r  {c('Uploading','cyan')} {c(str(pct)+'%','yellow')}   ", end="", flush=True)
             emit("progress", label="Uploading", percent=pct)
     print()
 

@@ -58,8 +58,7 @@ aieye -web                     # same as: aieye web
 
 ## Who can open it
 
-By default the app listens on `127.0.0.1`, so **only this computer** can open it. The page shows a "Local only" badge in the
-top bar.
+By default the app listens on `127.0.0.1`, so **only this computer** can open it. The sidebar card at the bottom left shows a "Local only" badge.
 
 To open it from another device on your network, start it with a host:
 

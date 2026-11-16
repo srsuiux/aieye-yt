@@ -52,11 +52,35 @@ def mark_done(topic, script, video_id=None, ids_by_lang=None):
     }
     if video_id and video_id != "unknown":
         entry["youtube_id"] = video_id
+        entry["uploaded_at"] = entry["completed_at"]
     if ids_by_lang:
         entry["youtube_ids"] = ids_by_lang
     final.append(entry)
     save_db(FINAL_DB, final)
     ok(f"Logged to history — {len(final)} shorts completed total")
+
+def event_time(e):
+    """When a history entry counts: the moment it reached YouTube, else when it was made."""
+    return e.get("uploaded_at") or e.get("completed_at") or ""
+
+def record_upload(history_id, title, topic, lang, video_id, cost=0.0):
+    """A video that was kept and uploaded later (Library): attach the YouTube id to its history entry, so it counts toward
+    today's limit and shows up under Recent videos and Uploaded. Finds the entry by id, then by title; adds one if none."""
+    final = load_db(FINAL_DB)
+    entry = next((e for e in reversed(final) if history_id and e.get("id") == history_id), None)
+    if entry is None:
+        entry = next((e for e in reversed(final) if e.get("title") == title and not e.get("youtube_id") and not e.get("youtube_ids")), None)
+    now = datetime.now().isoformat(timespec="seconds")
+    if entry is None:
+        entry = {"id": history_id or f"upload-{now}", "title": title, "topic": topic or title, "cost": cost, "completed_at": now}
+        final.append(entry)
+    ids = dict(entry.get("youtube_ids") or ({"en": entry["youtube_id"]} if entry.get("youtube_id") else {}))
+    ids[lang or "en"] = video_id
+    if len(ids) > 1 or (lang or "en") != "en":
+        entry["youtube_ids"] = ids
+    entry.setdefault("youtube_id", ids.get("en") or next(iter(ids.values())))
+    entry.setdefault("uploaded_at", now)
+    save_db(FINAL_DB, final)
 
 def save_ckpt(out_dir, name, data):
     with open(out_dir / f".ckpt_{name}.json", "w") as f:

@@ -14,7 +14,7 @@ from ..languages import LANGS
 from ..config import IMAGE_COST, CHANNEL, OUTPUT_DIR, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, DRAFT_DB, FINAL_DB, SETTINGS_FILE
 from ..limits import DAILY_LIMIT, pushed_today
 from ..settings import VOICE_INFO, voice_label
-from ..store import load_db
+from ..store import event_time, load_db
 from . import chat, connections, data, docs, jobs, library, studio
 
 HERE = Path(__file__).resolve().parent
@@ -45,6 +45,13 @@ def thumb_url(video_id):
 def create_app(token=None, bind_host="127.0.0.1"):
     app = FastAPI(title="AI Eye", docs_url=None, redoc_url=None, openapi_url=None)
     templates = Jinja2Templates(directory=str(HERE / "templates"))
+    def asset(name):
+        """/static/<name> with its modified time, so a changed CSS/JS file is never served from the browser's old copy."""
+        try:
+            return f"/static/{name}?v={int((HERE / 'static' / name).stat().st_mtime)}"
+        except OSError:
+            return f"/static/{name}"
+    templates.env.globals["asset"] = asset
     app.mount("/static", StaticFiles(directory=str(HERE / "static")), name="static")
     allowed_hosts = set(LOCAL_HOSTS) | ({bind_host} if bind_host not in ("0.0.0.0", "::") else set())
 
@@ -67,6 +74,10 @@ def create_app(token=None, bind_host="127.0.0.1"):
             if request.headers.get("x-requested-with") != "aieye":
                 return JSONResponse({"error": "Missing header"}, status_code=403)
         path, prefix = request.url.path, data.url_prefix()
+        if path.startswith("/static/"):                         # always revalidate, so edits to CSS/JS show without a hard refresh
+            resp = await call_next(request)
+            resp.headers["Cache-Control"] = "no-cache"
+            return resp
         if path == prefix or path.startswith(prefix + "/"):     # /@handle/create is served by the /create page
             request.scope["path"] = path[len(prefix):] or "/"
             request.scope["raw_path"] = request.scope["path"].encode()
@@ -90,15 +101,15 @@ def create_app(token=None, bind_host="127.0.0.1"):
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request):
         final = load_db(FINAL_DB)
-        recent = sorted(final, key=lambda e: e.get("completed_at", ""), reverse=True)[:8]
+        recent = sorted(final, key=event_time, reverse=True)[:8]
         for e in recent:
             ids = e.get("youtube_ids") or ({"en": e["youtube_id"]} if e.get("youtube_id") else {})
             vid = next(iter(ids.values()), None)
             e["link"] = f"https://youtube.com/shorts/{vid}" if vid else None
             e["thumb"] = thumb_url(vid)
             try:
-                e["when"] = datetime.fromisoformat(e["completed_at"]).strftime("%b %d, %H:%M")
-            except (KeyError, ValueError):
+                e["when"] = datetime.fromisoformat(event_time(e)).strftime("%b %d, %H:%M")
+            except ValueError:
                 e["when"] = ""
         pending = [t for t in load_db(DRAFT_DB) if t.get("status") == "pending"]
         yt = connections.youtube_status()
@@ -133,6 +144,14 @@ def create_app(token=None, bind_host="127.0.0.1"):
     @app.get("/assistant", response_class=HTMLResponse)
     def assistant_page(request: Request):
         return page(request, "assistant.html", title="Assistant", who=assistant.NAME, has_key=envfile.key_status("OPENAI_API_KEY")["set"])
+
+    @app.get("/api/assistant/glance")
+    def api_assistant_glance():
+        """A few live facts the Assistant's starter cards show before you click them. Reads only; nothing is spent."""
+        queue = [t for t in load_db(DRAFT_DB) if t.get("status") == "pending"]
+        kept = library.kept_videos()
+        return {"next_topic": queue[0]["title"] if queue else None, "queued": len(queue),
+                "pushed": pushed_today(), "limit": DAILY_LIMIT, "waiting": len(kept), "waiting_first": kept[0]["title"].replace(" #Shorts", "") if kept else None}
 
     @app.get("/api/chat")
     def api_chat_latest():
@@ -254,12 +273,12 @@ def create_app(token=None, bind_host="127.0.0.1"):
 
     def uploaded_items():
         out = []
-        for e in sorted(load_db(FINAL_DB), key=lambda x: x.get("completed_at", ""), reverse=True)[:12]:
+        for e in sorted(load_db(FINAL_DB), key=event_time, reverse=True)[:12]:
             ids = e.get("youtube_ids") or ({"en": e["youtube_id"]} if e.get("youtube_id") else {})
             if ids:
                 vid = next(iter(ids.values()))
                 out.append({"title": e.get("title") or e.get("topic"), "link": f"https://youtube.com/shorts/{vid}", "thumb": thumb_url(vid),
-                            "when": datetime.fromisoformat(e["completed_at"]).strftime("%b %d, %H:%M") if e.get("completed_at") else "",
+                            "when": datetime.fromisoformat(event_time(e)).strftime("%b %d, %H:%M") if event_time(e) else "",
                             "cost": e.get("cost")})
         return out
 
@@ -344,6 +363,16 @@ def create_app(token=None, bind_host="127.0.0.1"):
             return FileResponse(jobs.review_video_path(job_id, n), media_type="video/mp4")
         except jobs.JobError as e:
             raise HTTPException(404, str(e))
+
+    @app.get("/jobs/{job_id}/media")
+    def api_job_media(job_id: str, p: str):
+        """A picture or video the run made (shown in the live preview). Only image/video files inside the output folder."""
+        root = OUTPUT_DIR.resolve()
+        f = (root / p).resolve()
+        kinds = {".png": "image/png", ".mp4": "video/mp4"}
+        if root not in f.parents or f.suffix.lower() not in kinds or not f.is_file():
+            raise HTTPException(404, "Not found")
+        return FileResponse(f, media_type=kinds[f.suffix.lower()], headers={"Cache-Control": "no-cache"})
 
     @app.post("/api/jobs/{job_id}/review/{n}")
     async def api_review_decide(job_id: str, n: int, request: Request):

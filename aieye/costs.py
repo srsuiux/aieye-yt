@@ -13,5 +13,5 @@ def total():
 def track(label, amount):
     global _total
     _total += amount
-    log(f"💰  [{label}] ${amount:.4f}  |  total: ${_total:.4f}", "yellow")
+    log(f"Cost  {label}  ${amount:.4f}   total ${_total:.4f}", "yellow")
     emit("cost", label=label, amount=amount, total=_total)

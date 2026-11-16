@@ -8,7 +8,7 @@ from ..config import (DATA_DIR, CHANNEL, CHANNEL_FILE, DEFAULT_AUDIENCE_NOTES, D
 from ..dedupe import history_texts, lexical_match
 from ..limits import DAILY_LIMIT
 from ..settings import BATCH_DEFAULT, OPTIONAL_SETTINGS, SETTING_CHOICES, est_cost_per_video, load_defaults
-from ..store import load_db, save_db
+from ..store import event_time, load_db, save_db
 
 FALLBACK_DEFAULTS = {"image_style": "representational", "image_quality": "medium", "upload_privacy": "private",
                      "tts_voice": "marin", "batch_voice": "shuffle"}
@@ -163,11 +163,11 @@ def save_channel(v):
 # ── Topics (data/db/draft.json) ────────────────────────────────────────────────────────────────────────────────
 def topics_view():
     queue = [t for t in load_db(DRAFT_DB) if t.get("status") in ("pending", "in_progress")]
-    history = sorted(load_db(FINAL_DB), key=lambda e: e.get("completed_at", ""), reverse=True)[:30]
+    history = sorted(load_db(FINAL_DB), key=event_time, reverse=True)[:30]
     for e in history:
         try:
-            e["when"] = datetime.fromisoformat(e["completed_at"]).strftime("%b %d")
-        except (KeyError, ValueError):
+            e["when"] = datetime.fromisoformat(event_time(e)).strftime("%b %d")
+        except ValueError:
             e["when"] = ""
     return {"queue": queue, "history": history}
 

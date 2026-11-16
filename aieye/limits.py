@@ -1,7 +1,7 @@
 """Hard daily limit (goal.txt): at most 3 videos PUSHED to YouTube a day, and a run is either 1 video or 3 videos."""
 from datetime import date, datetime
 from .config import FINAL_DB
-from .store import load_db
+from .store import event_time, load_db
 from .ui import fail
 
 from .tuning import tune
@@ -17,9 +17,9 @@ def pushed_today():
         if not (e.get("youtube_id") or e.get("youtube_ids")):
             continue
         try:
-            if datetime.fromisoformat(e["completed_at"]).date() == today:
+            if datetime.fromisoformat(event_time(e)).date() == today:
                 n += 1
-        except (KeyError, ValueError):
+        except ValueError:
             continue
     return n
 

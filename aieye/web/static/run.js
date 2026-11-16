@@ -4,19 +4,27 @@
   var root = q("#run"), id = root.dataset.id, kind = root.dataset.kind;
   var wantReview = root.dataset.review === "1", wantUpload = root.dataset.upload === "1";
 
-  var ALL = [["topic", "Choose the topic"], ["script", "Write the script"], ["pictures", "Draw the pictures"], ["voice", "Record the narration"],
-             ["video", "Build the video"], ["review", "Your review"], ["upload", "Upload to YouTube"]];
-  var steps = kind === "upload" ? [["upload", "Upload to YouTube"]] : ALL.filter(function (s) {
+  // [key, step, who is doing it, what they do]
+  var ALL = [["topic", "Choose the topic", "Scout", "Picks what the video is about"], ["script", "Write the script", "Writer", "Researches the facts and writes the narration"],
+             ["pictures", "Draw the pictures", "Illustrator", "Paints one picture for every shot"], ["voice", "Record the narration", "Narrator", "Reads the script aloud and times each line"],
+             ["video", "Build the video", "Editor", "Adds motion and captions, then renders the video"], ["review", "Your review", "You", "Check the video before it goes out"],
+             ["upload", "Upload to YouTube", "Publisher", "Sends the video and its details to your channel"]];
+  var steps = kind === "upload" ? [["upload", "Upload to YouTube", "Publisher", "Sends the video and its details to your channel"]] : ALL.filter(function (s) {
     return (s[0] !== "review" || wantReview) && (s[0] !== "upload" || wantUpload);
   });
   function idx(key) { for (var i = 0; i < steps.length; i++) if (steps[i][0] === key) return i; return -1; }
 
   var tracker = q("#tracker"), nodes = {};
+  var feeds = {}, started = {}, activity = {};
   steps.forEach(function (s) {
     var li = document.createElement("li"); li.className = "pending";
-    li.innerHTML = '<span class="dot" aria-hidden="true"></span><span class="lbl"></span><span class="sub"></span>';
-    li.querySelector(".lbl").textContent = s[1]; tracker.appendChild(li); nodes[s[0]] = li;
+    li.innerHTML = '<div class="row"><span class="dot" aria-hidden="true"></span><span class="who"></span><span class="lbl"></span><span class="sub"></span></div>' +
+      '<p class="role"></p><div class="live" hidden><span class="typing" aria-hidden="true"><i></i><i></i><i></i></span><span class="doing"></span></div><ul class="feed"></ul>';
+    li.querySelector(".who").textContent = s[2]; li.querySelector(".lbl").textContent = s[1]; li.querySelector(".role").textContent = s[3];
+    li.addEventListener("click", function (e) { if (e.target.closest("a")) return; li.classList.toggle("open"); });
+    tracker.appendChild(li); nodes[s[0]] = li; feeds[s[0]] = [];
   });
+  var stageImgs = [], stageVideo = null, stageScript = null;
 
   var cur = -1, after = 0, timer = null, shown = null, uploadPct = null, videoLabel = "", langLabel = "", terminal = false, startedAt = null;
   var STATE_TEXT = { running: "Running", review: "Waiting for you", done: "Done", failed: "Failed", cancelled: "Cancelled" };
@@ -31,7 +39,8 @@
     if (t.indexOf("STEP 6") === 0) return "upload";
     return null;
   }
-  function setCur(key) { var i = idx(key); if (i >= 0 && i >= cur) { cur = i; uploadPct = null; } }
+  function setCur(key) { var i = idx(key); if (i >= 0 && i >= cur) { if (i !== cur) started[key] = Date.now(); cur = i; uploadPct = null; } }
+  function curKey() { return steps[cur >= 0 ? cur : 0][0]; }
 
   function handle(ev) {
     if (ev.kind === "section") { var k = section(ev.title); if (k) setCur(k); }
@@ -41,7 +50,41 @@
     else if (ev.kind === "language") { langLabel = ev.many ? ev.name : ""; if (ev.many && idx("pictures") >= 0) cur = Math.min(cur, idx("pictures")); }
     else if (ev.kind === "cost") q("#cost").textContent = "$" + ev.total.toFixed(4);
     else if (ev.kind === "progress") uploadPct = ev.percent;
-    else if (ev.kind === "log") addLog(ev);
+    else if (ev.kind === "log") { addLog(ev); addFeed(ev); }
+    else if (ev.kind === "spin") { var key = curKey(); if (ev.state === "start") activity[key] = ev.label; else delete activity[key]; }
+    else if (ev.kind === "artifact") artifact(ev);
+  }
+  function addFeed(ev) {
+    var m = (ev.message || "").trim();
+    if (!m || /^Output:/.test(m)) return;
+    var f = feeds[curKey()]; f.push({ text: m.replace(/^Building: /, "Working on "), tone: ev.color });
+    if (f.length > 60) f.shift();
+  }
+  function mediaUrl(p) { return "/jobs/" + id + "/media?p=" + encodeURIComponent(p); }
+  function artifact(ev) {
+    if (ev.what === "script") stageScript = ev;
+    else if (ev.what === "image" && ev.path) { if (stageImgs.indexOf(ev.path) < 0) stageImgs.push(ev.path); }
+    else if (ev.what === "video" && ev.path) stageVideo = ev.path;
+    drawStage();
+  }
+  function drawStage() {
+    var idle = q("#stage-idle"), sc = q("#stage-script"), im = q("#stage-img"), vd = q("#stage-video"), cap = q("#stage-cap");
+    idle.hidden = !!(stageScript || stageImgs.length || stageVideo);
+    sc.hidden = !(stageScript && !stageImgs.length && !stageVideo);
+    im.hidden = !(stageImgs.length && !stageVideo);
+    vd.hidden = !stageVideo;
+    if (stageScript && !sc.dataset.done) {
+      sc.dataset.done = "1"; q("#s-title").textContent = stageScript.title;
+      var ol = q("#s-scenes"); ol.innerHTML = "";
+      stageScript.scenes.forEach(function (s, i) { var li = document.createElement("li"); li.textContent = s.text; li.style.animationDelay = (i * 0.12) + "s"; ol.appendChild(li); });
+    }
+    if (stageImgs.length) { var last = mediaUrl(stageImgs[stageImgs.length - 1]); if (im.dataset.src !== last) { im.dataset.src = last; im.src = last; } }
+    if (stageVideo) { var v = mediaUrl(stageVideo); if (vd.dataset.src !== v) { vd.dataset.src = v; vd.src = v; vd.play().catch(function () {}); } }
+    var th = q("#thumbs");
+    if (th.children.length !== stageImgs.length) {
+      th.innerHTML = ""; stageImgs.forEach(function (p) { var i = document.createElement("img"); i.src = mediaUrl(p); i.alt = ""; i.loading = "lazy"; th.appendChild(i); });
+    }
+    cap.textContent = stageVideo ? "Finished video" : stageImgs.length ? stageImgs.length + " picture" + (stageImgs.length > 1 ? "s" : "") + " made so far" : stageScript ? "Script: " + stageScript.scenes.length + " scenes" : "Waiting to start";
   }
   function addLog(ev) {
     var pre = q("#log"), t = (ev.time || "").slice(11, 19);
@@ -60,11 +103,26 @@
         if (s[0] === "upload" && uploadPct !== null) text = uploadPct + "%";
         if (s[0] === "voice" || s[0] === "video" || s[0] === "upload") text = text || langLabel;
       }
-      li.className = cls; sub.textContent = text;
+      li.className = cls + (li.classList.contains("open") ? " open" : ""); sub.textContent = text;
+      var key = s[0], feed = feeds[key], live = li.querySelector(".live"), list = li.querySelector(".feed");
+      var working = cls === "active";
+      live.hidden = !working;
+      if (working) {
+        var secs = started[key] ? Math.floor((Date.now() - started[key]) / 1000) : 0;
+        live.querySelector(".doing").textContent = (activity[key] || (feed.length ? feed[feed.length - 1].text : s[3])) + (secs > 4 ? "  " + secs + "s" : "");
+        li.classList.add("open");
+      } else if (cls === "pending") li.classList.remove("open");
+      var shown = li.classList.contains("open") ? (working ? feed.slice(-4) : feed) : [];
+      var sig = shown.length + ":" + (shown.length ? shown[shown.length - 1].text : "");
+      if (list.dataset.sig !== sig) {
+        list.dataset.sig = sig; list.innerHTML = "";
+        shown.forEach(function (f) { var it = document.createElement("li"); it.textContent = f.text; if (f.tone) it.className = f.tone; list.appendChild(it); });
+      }
     });
     var frac = done ? 1 : steps.length ? Math.max(0.03, (cur + (cur >= 0 ? 0.5 : 0)) / steps.length) : 0.03;
     if (uploadPct !== null && cur === idx("upload")) frac = (cur + uploadPct / 100) / steps.length;
     q("#bar").style.width = Math.round(frac * 100) + "%";
+    var cap = q("#stage-cap"); if (!stageVideo && cur >= 0 && state === "running") cap.textContent = steps[cur][2] + " is working: " + steps[cur][1].toLowerCase();
     var chip = q("#run-status"); chip.textContent = (STATE_TEXT[state] || state) + (videoLabel && state === "running" ? " · " + videoLabel : "");
     chip.className = "status " + (state === "done" ? "ok" : state === "failed" ? "bad" : "");
     q("#cancel").hidden = state !== "running" && state !== "review";

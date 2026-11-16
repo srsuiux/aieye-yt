@@ -3,21 +3,33 @@
 {% block content %}
 <div class="chat" id="chat" data-name="{{ who }}" data-has-key="{{ 1 if has_key else 0 }}">
   <header class="chat-head">
-    <span class="eye" aria-hidden="true"></span>
-    <div><h1>{{ who }} <em class="beta">Beta</em></h1><p class="muted small">{{ brand }} content assistant. Plans videos, shows its work, and only acts when you press a button.</p></div>
-    <button class="btn ghost" id="new-chat" type="button">New chat</button>
+    <div class="chat-head-in">
+      <h1>{{ who }} <em class="beta">Beta</em></h1>
+      <span class="state" id="state" aria-live="polite">Ready</span>
+      <span class="grow"></span>
+      <button class="btn ghost" id="new-chat" type="button">New chat</button>
+    </div>
   </header>
 
   <div class="thread" id="thread" role="log" aria-live="polite" aria-label="Conversation with {{ who }}">
     <div class="welcome-chat" id="empty">
-      <span class="eye big" aria-hidden="true"></span>
+      <span class="eye big live" aria-hidden="true"></span>
       <h2>Hi, I'm {{ who }}.</h2>
-      <p class="muted">Tell me what video you want. I'll check your limits, plan it, show you the cost, and make it when you say go. You'll review it before anything is published.</p>
-      <div class="chips" id="chips">
-        <button type="button" class="chip-btn">Make a video from the next topic in my queue</button>
-        <button type="button" class="chip-btn">What is trending? Plan a video about it</button>
-        <button type="button" class="chip-btn">How many videos can I still publish today?</button>
-        <button type="button" class="chip-btn">What is waiting in my Library?</button>
+      <p class="muted small role-line">{{ brand }} content assistant. Plans videos, shows its work, and only acts when you press a button.</p>
+      <p class="muted">Tell me what video you want. I check your limits, plan it, show the cost, and make it when you say go.</p>
+      <div class="cards-start" id="chips">
+        <button type="button" class="start-card" data-q="Make a video from the next topic in my queue">
+          <span class="sc-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 5h14v14H5zM10 9l5 3-5 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <span class="sc-t">Make the next video</span><span class="sc-d" id="g-next">Checking your queue...</span></button>
+        <button type="button" class="start-card" data-q="What is trending? Plan a video about it">
+          <span class="sc-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 16l5-5 4 4 7-8M15 7h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="sc-t">See what is trending</span><span class="sc-d">Searches the web and plans a video about the best find.</span></button>
+        <button type="button" class="start-card" data-q="How many videos can I still publish today?">
+          <span class="sc-ico"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <span class="sc-t">Today's publishing room</span><span class="sc-d" id="g-limit">Checking today's limit...</span></button>
+        <button type="button" class="start-card" data-q="What is waiting in my Library?">
+          <span class="sc-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 7h16v12H4zM8 7V4h8v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+          <span class="sc-t">Check the Library</span><span class="sc-d" id="g-lib">Checking for videos...</span></button>
       </div>
     </div>
   </div>
@@ -27,11 +39,24 @@
     <form class="composer" id="composer">
       <label class="sr" for="msg">Message {{ who }}</label>
       <textarea id="msg" rows="1" maxlength="4000" placeholder="Ask {{ who }} to make a video…" {{ 'disabled' if not has_key }}></textarea>
+      <button class="mic" id="mic" type="button" aria-label="Dictate with your voice" aria-pressed="false" title="Dictate with your voice" hidden {{ 'disabled' if not has_key }}><svg viewBox="0 0 24 24" width="20" height="20"><rect x="9" y="3" width="6" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       <button class="send" id="send" type="submit" aria-label="Send" {{ 'disabled' if not has_key }}><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </form>
-    <p class="muted small fine">{{ who }} is an AI and can be wrong. It never spends money or publishes on its own. Chat replies cost about half a cent. <a href="{{ base }}/docs/assistant">How it works</a></p>
+    <p class="muted small fine"><span>{{ who }} can be wrong. It never spends money or publishes by itself.</span> <button type="button" class="linkish" id="info-open">More info</button></p>
   </div>
+  <dialog id="info-dialog" aria-labelledby="info-title">
+    <form method="dialog">
+      <h2 id="info-title">About {{ who }}</h2>
+      <ul class="info-list">
+        <li><strong>It can be wrong.</strong> {{ who }} is an AI. Check facts before you publish.</li>
+        <li><strong>It never acts alone.</strong> It will not spend money or publish unless you press a button on a card.</li>
+        <li><strong>Cost.</strong> Chat replies cost about half a cent. Making a video shows its estimate first.</li>
+        <li><strong>Voice.</strong> Voice dictation uses your browser's speech service. Your voice is not recorded by this app.</li>
+      </ul>
+      <div class="actions"><a class="btn ghost" href="{{ base }}/docs/assistant">How it works</a> <button class="btn" value="close" autofocus>Got it</button></div>
+    </form>
+  </dialog>
   <template id="publish-note">{{ before_publish() }}</template>
 </div>
 {% endblock %}
-{% block scripts %}<script src="/static/assistant.js"></script>{% endblock %}
+{% block scripts %}<script src="{{ asset('assistant.js') }}"></script>{% endblock %}

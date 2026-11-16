@@ -69,10 +69,10 @@
         <div class="actions"><button class="btn" id="yes" type="button">Yes, spend it</button><button class="btn ghost" id="no" type="button">Cancel</button></div>
       </div>
       {{ spends_money() }}
-      {{ sent_to('OpenRouter and the video model\'s company' if tool == 'clip' else ('OpenAI and the video model\'s company' if tool == 'film' else 'OpenAI') ) }}
+      {{ sent_to('OpenRouter and the video model's company' if tool == 'clip' else ('OpenAI and the video model's company' if tool == 'film' else 'OpenAI') ) }}
       <p class="note" id="note" role="alert"></p>
     </div></aside>
   </form>
 </div>
 {% endblock %}
-{% block scripts %}<script src="/static/studio.js"></script>{% endblock %}
+{% block scripts %}<script src="{{ asset('studio.js') }}"></script>{% endblock %}

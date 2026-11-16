@@ -8,6 +8,13 @@ Iris is a **beta**: it is newer and tested less than the Create page, and an AI 
 
 ## What you see
 
+- **Starter cards.** On an empty chat, four cards show what they will do before you click: your next queued topic, how many
+  videos you can still push today, what is waiting in the Library, and a trending search. Clicking one sends that request.
+- **Voice dictation.** The microphone button next to Send turns your speech into text in the box. Nothing is sent until you press
+  Send. It uses your browser's speech service, so it only appears in browsers that have one (such as Chrome and Safari).
+- **A quiet header.** Iris's logo shows once per reply, not on every message. While Iris works, its logo changes colour and the
+  header shows **Working**. When idle it is still. **More info** under the box opens the short list of cautions.
+
 - **Its work, live.** While Iris works you see each step as it happens, such as "Checking your keys, daily limit and settings".
   When it finishes, the steps fold into one line ("Worked through 2 steps") that you can open again.
 - **A video plan card.** It lists the topic, how many videos, languages, picture style and quality, narrator and upload choice,

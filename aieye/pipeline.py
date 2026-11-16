@@ -11,7 +11,7 @@ from .script import generate_script
 from .settings import get_args, setup_run, shuffled_voices
 from .store import get_pending, mark_done, mark_in_progress
 from .topics import pick_topic
-from .ui import c, emit, fail, log, ok, section, spin, warn
+from .ui import artifact, c, emit, fail, log, ok, section, spin, warn
 from .video import assemble_video
 from .youtube import upload_to_youtube
 
@@ -85,6 +85,8 @@ def run_one(client, review=None):
         script      = generate_script(client, topic, out_dir)
         img_paths   = generate_images(client, script, out_dir)
         res["title"] = script["title"]
+        emit("artifact", what="script", title=script["title"], path=None,
+             scenes=[{"scene": s["scene"], "text": " ".join(x["narration"] for x in (s.get("shots") or [s]))} for s in script["scenes"]])
 
         # 3. One finished video per requested language
         outcomes = []
@@ -101,12 +103,15 @@ def run_one(client, review=None):
             durations   = get_durations(audio_paths, lang_dir)
             video_path  = assemble_video(img_paths, audio_paths, durations, lang_dir, lang_script)
             res["path"] = res["path"] or str(video_path)
+            artifact("video", video_path, lang=code)
 
             scene_facts = "\n".join(f"{s['scene']}. {s['narration']}" for s in lang_script["scenes"])
             meta = {
                 "title":       lang_script["title"] + " #Shorts",
                 "description": CHANNEL["description"].replace("{scene_facts}", scene_facts),
                 "lang":        code,
+                "history_id":  topic["id"],      # lets a later Library upload find this video's history entry
+                "topic":       topic["title"],
             }
             with open(lang_dir / "youtube_metadata.json", "w") as f:
                 json.dump(meta, f, indent=2, ensure_ascii=False)
@@ -123,7 +128,7 @@ def run_one(client, review=None):
                             json.dump(meta, f, indent=2, ensure_ascii=False)
                         video_id = upload_to_youtube(video_path, meta)
                     else:
-                        log(f"{tag}Upload skipped after review — video kept locally", "yellow")
+                        log(f"{tag}Upload skipped after review, video kept locally", "yellow")
                 else:
                     video_id = upload_to_youtube(video_path, meta)
             except Exception as e:
@@ -158,7 +163,7 @@ def run_one(client, review=None):
 
         for code, _s, meta, _v, vid in outcomes:
             if vid:
-                print(f"  {c('▶  Live at:','green')} {c(f'https://youtube.com/shorts/{vid}','cyan')}  ({LANGS[code][0]})")
+                print(f"  {c('Live at:','green')} {c(f'https://youtube.com/shorts/{vid}','cyan')}  ({LANGS[code][0]})")
             print_upload_metadata(meta)
         res["ok"] = res["error"] is None
     except SystemExit:
@@ -167,7 +172,7 @@ def run_one(client, review=None):
         import traceback
         msg = f"{type(e).__name__}: {e}"
         res["error"] = msg[:200]
-        log(f"❌  {msg[:400]}", "red")
+        log(f"Error: {msg[:400]}", "red")
         log("".join(traceback.format_exc().splitlines(True)[-6:]), "dim")
         if "insufficient_quota" in msg or "credit_balance_exhausted" in msg:
             res["abort"] = True      # no point trying the next video
@@ -181,7 +186,7 @@ def print_batch_summary(results, seconds):
     print(c(f"  BATCH COMPLETE  —  {good}/{len(results)} succeeded", "bold"))
     print(c("═"*60, "bold"))
     for i, r in enumerate(results, 1):
-        mark  = c("✅", "green") if r["ok"] else c("❌", "red")
+        mark  = c("done  ", "green") if r["ok"] else c("failed", "red")
         title = r["title"] or r["topic"] or "(no title)"
         where = r["url"] or (r["path"] if r["path"] else "")
         if r["error"]:

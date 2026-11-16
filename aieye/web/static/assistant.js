@@ -239,7 +239,7 @@
     if (isNew) { if (ev.kind !== "step") { lastKind = ev.kind; lastGroup = null; } else lastKind = "step"; }
     if (stick) toBottom();
   }
-  function setBusy(b) { busy = b; sendBtn.disabled = b || root.dataset.hasKey !== "1"; root.classList.toggle("is-busy", b); }
+  function setBusy(b) { busy = b; sendBtn.disabled = b || root.dataset.hasKey !== "1"; root.classList.toggle("is-busy", b); var st = $("#state"); if (st) st.textContent = b ? "Working" : "Ready"; }
   function apply(d) {
     if (d.events && d.events.length) empty.hidden = true;
     d.events.forEach(draw); after = d.next; setBusy(!!d.busy);
@@ -262,10 +262,42 @@
   }
   function autosize() { msg.style.height = "auto"; msg.style.height = Math.min(msg.scrollHeight, 160) + "px"; }
 
-  $("#composer").addEventListener("submit", function (e) { e.preventDefault(); send(msg.value); });
-  msg.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(msg.value); } });
+  // ---- voice dictation (browser speech recognition; text only, nothing is sent until you press Send) ----
+  var mic = $("#mic"), SR = window.SpeechRecognition || window.webkitSpeechRecognition, rec = null, listening = false, base = "";
+  function stopListening() { if (rec && listening) { try { rec.stop(); } catch (e) {} } }
+  if (SR && mic) {
+    mic.hidden = false;
+    mic.addEventListener("click", function () {
+      if (listening) { stopListening(); return; }
+      rec = new SR(); rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.continuous = true;
+      base = msg.value && !/\s$/.test(msg.value) ? msg.value + " " : msg.value;
+      rec.onstart = function () { listening = true; mic.classList.add("on"); mic.setAttribute("aria-pressed", "true"); mic.title = "Stop dictation"; };
+      rec.onresult = function (e) {
+        var t = ""; for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+        msg.value = base + t; autosize();
+      };
+      rec.onerror = function (e) {
+        var m = { "not-allowed": "Microphone blocked. Allow it in your browser's site settings.", "service-not-allowed": "Microphone blocked. Allow it in your browser's site settings.", "no-speech": "", "aborted": "", "network": "Speech service unreachable. Check your connection." }[e.error];
+        if (m == null) m = "Voice dictation failed (" + e.error + ")."; if (m && window.aieye) window.aieye.toast(m);
+      };
+      rec.onend = function () { listening = false; mic.classList.remove("on"); mic.setAttribute("aria-pressed", "false"); mic.title = "Dictate with your voice"; msg.focus(); };
+      try { rec.start(); } catch (e) {}
+    });
+  }
+  $("#composer").addEventListener("submit", function (e) { e.preventDefault(); stopListening(); send(msg.value); });
+  msg.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); stopListening(); send(msg.value); } });
   msg.addEventListener("input", autosize);
-  Array.prototype.forEach.call(document.querySelectorAll("#chips .chip-btn"), function (b) { b.addEventListener("click", function () { send(b.textContent); }); });
+  Array.prototype.forEach.call(document.querySelectorAll("#chips .start-card"), function (b) { b.addEventListener("click", function () { send(b.dataset.q); }); });
+  $("#info-open").addEventListener("click", function () { $("#info-dialog").showModal(); });
+  // what each starter card will act on, shown before you click
+  get("/api/assistant/glance").then(function (g) {
+    if (!g || g.limit == null) return;
+    var cut = function (s) { return s.length > 70 ? s.slice(0, 68) + "..." : s; };
+    $("#g-next").textContent = g.next_topic ? "Next: " + cut(g.next_topic) + (g.queued > 1 ? "  (+" + (g.queued - 1) + " more)" : "") : "Your queue is empty. I can find a topic.";
+    var left = Math.max(0, g.limit - g.pushed);
+    $("#g-limit").textContent = g.pushed + " of " + g.limit + " pushed today. " + left + " left.";
+    $("#g-lib").textContent = g.waiting ? g.waiting + " waiting to upload. Latest: " + cut(g.waiting_first) : "Nothing waiting. All videos are uploaded.";
+  }).catch(function () {});
   $("#new-chat").addEventListener("click", function () {
     if (busy && !confirm("I am still working. Start a new chat anyway?")) return;
     post("/api/chat/new", {}).then(function (d) {

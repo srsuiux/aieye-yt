@@ -1,7 +1,7 @@
 import re, time, base64
 from .config import CFG, IMAGE_COST, IMAGE_IN_COST, IMAGE_MODEL, IMAGE_OUT_COST, IMAGE_SIZE, IMAGE_TEXT_IN_COST, IMAGE_WORKERS
 from .costs import track
-from .ui import fail, ok, section, spin, warn
+from .ui import artifact, fail, ok, section, spin, warn
 
 # STEP 3 — IMAGES
 
@@ -62,6 +62,7 @@ def generate_images(client, script, out_dir):
             path = out_dir / f"frame_{label}_shot{k + 1}_image.png"
             paths.append(path)
             if path.exists():
+                artifact("image", path, scene=label, shot=k + 1)
                 first = first or path
                 continue
             prompt = " ".join(x for x in [
@@ -90,6 +91,7 @@ def generate_images(client, script, out_dir):
             if not res.data or not res.data[0].b64_json:
                 fail(f"Scene {label} shot {k + 1}: empty response from API")
             path.write_bytes(base64.b64decode(res.data[0].b64_json))
+            artifact("image", path, scene=label, shot=k + 1)
             cost += image_call_cost(res, quality)
             made += 1
             first = first or path
