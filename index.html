@@ -5,6 +5,24 @@
 <section class="hero"><h1>5 facts. 60 seconds. Mind blown.</h1>
 <p>Quick, family-friendly videos about the most fascinating things in science, space, nature and history. A new one every day.</p>
 <a class="btn" href="https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw">Watch on YouTube</a></section>
+<h2>Latest video</h2>
+<div class="player" id="player"><p class="muted">Loading…</p></div>
+<h2>All videos</h2>
+<div class="videos" id="videos"></div>
+<noscript><p>Turn on JavaScript to see the video list, or <a href="https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw/shorts">watch on YouTube</a>.</p></noscript>
+<script>
+fetch("videos.json").then(r=>r.json()).then(list=>{
+  if(!list.length) return;
+  const top=list[0], esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  document.getElementById("player").innerHTML=
+    '<iframe src="https://www.youtube-nocookie.com/embed/'+top.id+'" title="'+esc(top.title)+'" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'+
+    '<p>'+esc(top.title)+'</p>';
+  document.getElementById("videos").innerHTML=list.map(v=>
+    '<a class="vid" href="https://www.youtube.com/shorts/'+v.id+'" target="_blank" rel="noopener">'+
+    '<img loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="">'+
+    '<span>'+esc(v.title)+'</span></a>').join("");
+}).catch(()=>{document.getElementById("player").innerHTML='<p>Could not load videos. <a href="https://www.youtube.com/channel/UCLYrvFHE_D45TNq93qIprYw/shorts">Watch on YouTube</a>.</p>'});
+</script>
 <h2>What we post</h2>
 <div class="grid">
 <div class="card"><h3>Weird animals</h3><p>Odd bodies and behaviours, like why an octopus has three hearts.</p></div>
